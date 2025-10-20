@@ -7,6 +7,8 @@
  * A Selector is a function that returns a cypress get or find chain.
  * You can pass an object to use its data and narrow down
  * tests against the various elements.
+ * 
+ * @deprecated - Use role based selectors instead (cy.findByRole, cy.findByLabelText, etc.)
  */
 export interface Selector {
 	(args?: Object): Cypress.Chainable<JQuery>
