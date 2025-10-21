@@ -6,6 +6,12 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## v0.4.0 - UNRELEASED
+### Notes
+The Cypress selectors provided by the package are now deprecated and will be removed with the next release.
+Instead use role based selectors like `cy.findByRole` from `@testing-library/cypress`.
+
 ## v0.3.0 - 2025-10-14
 ### Added
 - feat: rename repository to e2e test server \([#758](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/758)\)
