@@ -7,10 +7,18 @@
 All notable changes to this project will be documented in this file.
 
 
-## v0.4.0 - UNRELEASED
+## v0.4.0 - 2025-10-21
 ### Notes
 The Cypress selectors provided by the package are now deprecated and will be removed with the next release.
 Instead use role based selectors like `cy.findByRole` from `@testing-library/cypress`.
+
+### Added
+* feat(cypress): return exec context to allow working with exit code or output \([#896](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/896)\)
+
+### Changed
+* chore: deprecate Cypress selectors \([#898](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/898)\)
+* docs: provide a changelog to keep track of all notable changes \([#897](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/897)\)
+* Updated development dependencies
 
 ## v0.3.0 - 2025-10-14
 ### Added
