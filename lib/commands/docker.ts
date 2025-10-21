@@ -12,12 +12,12 @@ function getContainerName(): Cypress.Chainable<string> {
 	})
 }
 
-export function runCommand(command: string, options?: Partial<Cypress.ExecOptions>) {
+export function runCommand(command: string, options?: Partial<Cypress.ExecOptions>): Cypress.Chainable<Cypress.Exec> {
 	const env = Object.entries(options?.env ?? {})
 		.map(([name, value]) => `-e '${name}=${value}'`)
 		.join(' ')
 
-	getContainerName()
+	return getContainerName()
 		.then((containerName) => {
 			// Wrapping command inside bash -c "..." to allow using '*'.
 			return cy.exec(`docker exec --user www-data --workdir /var/www/html ${env} ${containerName} bash -c "${command}"`, options)
