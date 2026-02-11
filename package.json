@@ -75,7 +75,7 @@
     "watch": "vite --mode production build --watch"
   },
   "dependencies": {
-    "@nextcloud/paths": "^2.2.1",
+    "@nextcloud/paths": "^3.0.0",
     "dockerode": "^4.0.2",
     "fast-xml-parser": "^5.2.2",
     "wait-on": "^9.0.1"
