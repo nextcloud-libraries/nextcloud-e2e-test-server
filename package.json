@@ -76,7 +76,7 @@
   },
   "dependencies": {
     "@nextcloud/paths": "^2.2.1",
-    "dockerode": "^4.0.2",
+    "dockerode": "^5.0.0",
     "fast-xml-parser": "^5.2.2",
     "wait-on": "^9.0.1"
   },
