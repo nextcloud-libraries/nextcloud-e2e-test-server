@@ -251,9 +251,8 @@ export const configureNextcloud = async function(apps = ['viewer'], vendoredBran
 	console.log('│  └─ OK !')
 
 	// Build app list
-	const json = await runOcc(['app:list', '--output', 'json'], { container })
-	// fix dockerode bug returning invalid leading characters
-	const applist = JSON.parse(json.substring(json.indexOf('{')))
+	const json = await runOcc(['app:list', '--output', 'json'], { container, verbose: true })
+	const applist = JSON.parse(json)
 
 	// Enable apps and give status
 	for (const app of apps) {
@@ -263,7 +262,8 @@ export const configureNextcloud = async function(apps = ['viewer'], vendoredBran
 			// built in or mounted already as the app under development
 			await runOcc(['app:enable', '--force', app], { container, verbose: true })
 		} else {
-			const { shippedApps } = JSON.parse(await runExec(['cat', 'core/shipped.json'], { container }))
+			const { stdout: jsonOutput } = await runExec(['cat', 'core/shipped.json'], { container })
+			const { shippedApps } = JSON.parse(jsonOutput)
 			if (shippedApps.includes(app)) {
 				const branchOption = ['main', 'master'].includes(vendoredBranch) ? [] : [`--branch=${vendoredBranch}`]
 				// apps that are vendored but still missing (i.e. not build in or mounted already)
@@ -408,13 +408,19 @@ interface RunExecOptions {
 	verbose: boolean
 }
 
+type RunExecResult = {
+	stdout: string
+	stderr: string
+	exitCode: number
+}
+
 /**
  * Execute a command in the container
  */
-export const runExec = async function(
+export async function runExec(
 	command: string | string[],
 	{ container, user='www-data', verbose=false, env=[], failOnError=true }: Partial<RunExecOptions> = {},
-) {
+): Promise<RunExecResult> {
 	container = container || getContainer()
 	const exec = await container.exec({
 		Cmd: typeof command === 'string' ? [command] : command,
@@ -424,35 +430,96 @@ export const runExec = async function(
 		Env: env,
 	})
 
-	return new Promise<string>((resolve, reject) => {
-		const dataStream = new PassThrough()
+	return new Promise<RunExecResult>((resolve, reject) => {
+		const stdoutStream = new PassThrough()
+		const stderrStream = new PassThrough()
 
-		exec.start({}, (err, stream) => {
-			if (stream) {
-				// Pass stdout and stderr to dataStream
-				exec.modem.demuxStream(stream, dataStream, dataStream)
-				stream.on('end', () => dataStream.end())
-			} else {
-				reject(err)
-			}
-		})
+		const stdout: string[] = []
+		const stderr: string[] = []
 
-		const data: string[] = []
-		dataStream.on('data', (chunk) => {
-			data.push(chunk.toString('utf8'))
-			const printable = data.at(-1)?.trim()
-			if (verbose && printable) {
-				console.log(`├─ ${printable.replace(/\n/gi, '\n├─ ')}`)
-			}
-		})
-		dataStream.on('error', (err) => reject(err))
-		dataStream.on('end', async () => {
-			const result = await exec.inspect()
-			if (result.ExitCode && failOnError) {
-				reject(new Error(data.join(''), { cause: result.ExitCode }))
+		let settled = false
+		let finishedStreams = 0
+
+		const cleanup = () => {
+			stdoutStream.removeAllListeners()
+			stderrStream.removeAllListeners()
+		}
+
+		const settleResolve = (result: RunExecResult) => {
+			if (settled) {
 				return
 			}
-			resolve(data.join(''))
+			settled = true
+			cleanup()
+			resolve(result)
+		}
+
+		const settleReject = (err: unknown) => {
+			if (settled) {
+				return
+			}
+			settled = true
+			cleanup()
+			reject(err)
+		}
+
+		const maybeResolve = async () => {
+			finishedStreams++
+			if (finishedStreams === 2) {
+				const inspectionResult = await exec.inspect()
+				const result = {
+					stdout: stdout.join(''),
+					stderr: stderr.join(''),
+					exitCode: inspectionResult.ExitCode ?? 0,
+				}
+				
+				if (result.exitCode && failOnError) {
+					settleReject(new Error('command exited with non-zero exit code', { cause: result }))
+					return
+				}
+				settleResolve(result)
+			}
+		}
+
+		stdoutStream.on('data', (chunk) => {
+			const text = chunk.toString('utf8')
+			stdout.push(text)
+			if (verbose && text.trim()) {
+				console.log(`├─ stdout: ${text.trim().replace(/\n/gi, '\n├─ stdout: ')}`)
+			}
+		})
+
+		stderrStream.on('data', (chunk) => {
+			const text = chunk.toString('utf8')
+			stderr.push(text)
+			if (verbose && text.trim()) {
+				console.log(`├─ stderr: ${text.trim().replace(/\n/gi, '\n├─ stderr: ')}`)
+			}
+		})
+
+		stdoutStream.on('error', settleReject)
+		stderrStream.on('error', settleReject)
+
+		stdoutStream.on('end', maybeResolve)
+		stderrStream.on('end', maybeResolve)
+
+		exec.start({}, (err, stream) => {
+			if (err) {
+				settleReject(err)
+				return
+			}
+			if (!stream) {
+				settleReject(new Error('No exec stream returned'))
+				return
+			}
+
+			stream.on('error', settleReject)
+			stream.on('end', () => {
+				stdoutStream.end()
+				stderrStream.end()
+			})
+
+			exec.modem.demuxStream(stream, stdoutStream, stderrStream)
 		})
 	})
 }
@@ -460,12 +527,13 @@ export const runExec = async function(
 /**
  * Execute an occ command in the container
  */
-export const runOcc = function(
+export async function runOcc(
 	command: string | string[],
 	{ container, env=[], verbose=false }: Partial<Omit<RunExecOptions, 'user'>> = {},
 ) {
 	const cmdArray = typeof command === 'string' ? [command] : command
-	return runExec(['php', 'occ', ...cmdArray], { container, verbose, env })
+	const { stdout } = await runExec(['php', 'occ', ...cmdArray], { container, verbose, env })
+	return stdout
 }
 
 /**
