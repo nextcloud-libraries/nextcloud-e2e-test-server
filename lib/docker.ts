@@ -392,9 +392,9 @@ type RunExecResult = {
 }
 
 /**
- * Execute a command in the container
+ * Execute a command in the container and return stdout/stderr separately.
  */
-export const runExec = async function(
+export const runExecRaw = async function(
 	command: string | string[],
 	{ container, user='www-data', verbose=false, env=[] }: Partial<RunExecOptions> = {},
 ): Promise<RunExecResult> {
@@ -494,6 +494,17 @@ export const runExec = async function(
 }
 
 /**
+ * Execute a command in the container and return stdout only.
+ */
+export const runExec = async function(
+	command: string | string[],
+	options: Partial<RunExecOptions> = {},
+): Promise<string> {
+	const { stdout } = await runExecRaw(command, options)
+	return stdout
+}
+
+/**
  * Execute an occ command in the container
  */
 export const runOcc = function(
@@ -501,8 +512,7 @@ export const runOcc = function(
 	{ container, env=[], verbose=false }: Partial<Omit<RunExecOptions, 'user'>> = {},
 ) {
 	const cmdArray = typeof command === 'string' ? [command] : command
-	const { stdout } = await runExec(['php', 'occ', ...cmdArray], { container, verbose, env })
-	return stdout
+	return runExec(['php', 'occ', ...cmdArray], { container, verbose, env })
 }
 
 /**
