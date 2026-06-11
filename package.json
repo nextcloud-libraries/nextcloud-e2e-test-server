@@ -26,13 +26,13 @@
   "exports": {
     "./commands": {
       "types": "./dist/commands/index.d.ts",
-      "import": "./dist/commands/index.cjs",
-      "require": "./dist/commands/index.cjs"
+      "import": "./dist/commands.mjs",
+      "require": "./dist/commands.cjs"
     },
     "./selectors": {
       "types": "./dist/selectors/index.d.ts",
-      "import": "./dist/selectors/index.cjs",
-      "require": "./dist/selectors/index.cjs"
+      "import": "./dist/selectors.mjs",
+      "require": "./dist/selectors.cjs"
     },
     "./docker": {
       "types": "./dist/docker.d.ts",
