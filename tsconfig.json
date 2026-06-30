@@ -5,7 +5,11 @@
 			"ES2024",
 			"DOM"
 		],
-		"rootDir": ".",
+		"types": [
+			"cypress",
+			"node"
+		],
+		"rootDir": "lib",
 		"outDir": "./dist",
 		"target": "esnext",
 		"module": "esnext",

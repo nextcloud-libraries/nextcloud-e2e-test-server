@@ -18,7 +18,7 @@ import { XMLParser } from 'fast-xml-parser'
 import { User } from './User'
 
 const SERVER_IMAGE = 'ghcr.io/nextcloud/continuous-integration-shallow-server'
-const VENDOR_APPS = {
+const VENDOR_APPS: Record<string, string> = {
 	text: 'https://github.com/nextcloud/text.git',
 	viewer: 'https://github.com/nextcloud/viewer.git',
 	notifications: 'https://github.com/nextcloud/notifications.git',
@@ -204,7 +204,7 @@ export async function startNextcloud(branch = 'master', mountApp: boolean|string
 const pullImage = function() {
 	// Pulling images
 	console.log('\nPulling images… ⏳')
-	return new Promise((resolve, reject) => docker.pull(SERVER_IMAGE, (_err, stream: Stream) => {
+	return new Promise((resolve, reject) => docker.pull(SERVER_IMAGE, (_: unknown, stream: Stream) => {
 		const onFinished = function(err: Error | null) {
 			if (!err) {
 				return resolve(true)
@@ -355,7 +355,10 @@ export const getContainerIP = async function(
 		tries++
 
 		await container.inspect((_err, data) => {
-			ip = data?.NetworkSettings?.IPAddress || ''
+			ip = data?.NetworkSettings?.Networks?.default?.IPAddress
+				// @ts-expect-error -- fallback to legacy network settings
+				|| data?.NetworkSettings?.IPAddress
+				|| ''
 		})
 
 		if (ip !== '') {
