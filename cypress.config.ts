@@ -69,17 +69,4 @@ export default defineConfig({
 				})
 		},
 	},
-
-	component: {
-		setupNodeEvents(on, config) {
-			CodeCoverage(on, config)
-
-			return config
-		},
-		devServer: {
-			framework: 'vue',
-			bundler: 'webpack',
-			webpackConfig,
-		},
-	},
 })

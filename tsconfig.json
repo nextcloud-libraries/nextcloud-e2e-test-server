@@ -5,6 +5,7 @@
 			"ES2024",
 			"DOM"
 		],
+		"rootDir": ".",
 		"outDir": "./dist",
 		"target": "esnext",
 		"module": "esnext",
