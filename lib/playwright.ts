@@ -19,8 +19,17 @@ export async function createRandomUser(): Promise<User> {
 
 /**
  * Helper to login on the Nextcloud instance
+ *
+ * Throws if the login did not actually succeed. A rejected Nextcloud login does
+ * not return an error status: it answers `303` and redirects back to `./login`,
+ * whereas a successful login redirects to the default app. Following the
+ * redirect (the default) would collapse both cases into a `200`, letting a
+ * failed login pass silently and only surface much later as a confusing `403`
+ * on the first authenticated request. So we stop at the redirect and inspect it.
+ *
  * @param request API request object
  * @param user The user to login
+ * @throws If the credentials are rejected or the login redirect is unexpected
  */
 export async function login(
 	request: APIRequestContext,
@@ -40,10 +49,15 @@ export async function login(
 		headers: {
 			Origin: tokenResponse.url().replace(/index.php.*/, ''),
 		},
-		failOnStatusCode: true,
+		// Do not follow the redirect — its target tells us whether login succeeded
+		maxRedirects: 0,
 	})
 
-	const response = await request.get('apps/files', {
-		failOnStatusCode: true,
-	})
+	const location = loginResponse.headers()['location'] ?? ''
+	if (loginResponse.status() !== 303 || /\/login(\?|$)/.test(location)) {
+		throw new Error(
+			`Failed to login as "${user.userId}": expected a redirect away from the login page `
+			+ `but got status ${loginResponse.status()} redirecting to "${location || '<none>'}"`,
+		)
+	}
 }
