@@ -82,7 +82,7 @@
   "devDependencies": {
     "@cypress/code-coverage": "^3.12.39",
     "@nextcloud/upload": "^1.1.1",
-    "@nextcloud/vite-config": "^2.5.1",
+    "@nextcloud/vite-config": "^2.5.2",
     "@nextcloud/webpack-vue-config": "^6.0.1",
     "@playwright/test": "^1.61.1",
     "@types/cypress": "^1.1.6",
