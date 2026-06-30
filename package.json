@@ -26,13 +26,13 @@
   "exports": {
     "./commands": {
       "types": "./dist/commands/index.d.ts",
-      "import": "./dist/commands/index.cjs",
-      "require": "./dist/commands/index.cjs"
+      "import": "./dist/commands.mjs",
+      "require": "./dist/commands.cjs"
     },
     "./selectors": {
       "types": "./dist/selectors/index.d.ts",
-      "import": "./dist/selectors/index.cjs",
-      "require": "./dist/selectors/index.cjs"
+      "import": "./dist/selectors.mjs",
+      "require": "./dist/selectors.cjs"
     },
     "./docker": {
       "types": "./dist/docker.d.ts",
@@ -63,7 +63,7 @@
   ],
   "scripts": {
     "build": "vite --mode production build",
-    "build:doc": "typedoc --tsconfig cypress/tsconfig.json --out dist/doc lib/commands lib/selectors lib && touch dist/doc/.nojekyll",
+    "build:doc": "typedoc --out dist/doc lib/commands lib/selectors/index.ts lib && touch dist/doc/.nojekyll",
     "build:instrumented": "vite --mode instrumented build",
     "cypress": "npm run cypress:e2e && npm run cypress:component",
     "cypress:e2e": "cypress run --e2e",
@@ -87,6 +87,7 @@
     "@playwright/test": "^1.61.1",
     "@types/cypress": "^1.1.6",
     "@types/dockerode": "^4.0.1",
+    "@types/wait-on": "^5.3.4",
     "cypress": "^15.18.0",
     "nyc": "^18.0.0",
     "rollup-plugin-istanbul": "^5.0.0",
