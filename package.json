@@ -80,7 +80,7 @@
     "wait-on": "^9.0.1"
   },
   "devDependencies": {
-    "@cypress/code-coverage": "^3.12.39",
+    "@cypress/code-coverage": "^4.0.3",
     "@nextcloud/upload": "^1.1.1",
     "@nextcloud/vite-config": "^2.5.2",
     "@nextcloud/webpack-vue-config": "^6.0.1",
