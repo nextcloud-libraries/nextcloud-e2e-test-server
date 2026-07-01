@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import * as expect from 'node:assert'
 import { after, before, describe, test } from 'node:test'
-import { configureNextcloud, getContainer, runExec, startNextcloud, stopNextcloud, waitOnNextcloud } from '../lib/docker.ts'
+import { configureNextcloud, getContainer, runExec, runOcc, startNextcloud, stopNextcloud, waitOnNextcloud } from '../lib/docker.ts'
 
 describe('Docker: Pre-installation of apps', async () => {
 	before(async () => {
-		const ip = await startNextcloud('master', false)
+		const ip = await startNextcloud('master', false, { forceRecreate: true })
 		await waitOnNextcloud(ip)
 		await configureNextcloud(['viewer', 'text', 'forms'])
 	})
@@ -24,12 +25,21 @@ describe('Docker: Pre-installation of apps', async () => {
 	await test('Additional apps: Mapping "main" branches', async () => {
 		const container = getContainer()
 		// this must not throw
-		await runExec(['file', '-f', 'apps/text/appinfo/info.xml'], { container, failOnError: true})
+		await runExec(['file', '-f', 'apps/text/appinfo/info.xml'], { container })
+		const { enabled } = await getAppsList()
+		expect.equal('text' in enabled, true, 'Text app should be enabled')
 	})
 
 	await test('Additional apps: fetching from appstore works', async () => {
 		const container = getContainer()
 		// this must not throw
-		await runExec(['file', '-f', 'apps/forms/appinfo/info.xml'], { container, failOnError: true})
+		await runExec(['file', '-f', 'apps/forms/appinfo/info.xml'], { container })
+		const { enabled } = await getAppsList()
+		expect.equal('forms' in enabled, true, 'Forms app should be enabled')
 	})
 })
+
+async function getAppsList(): Promise<{ enabled: Record<string, string>; disabled: Record<string, string> }> {
+	const list = await runOcc(['app:list', '--output=json'], { failOnError: true })
+	return JSON.parse(list)
+}
