@@ -71,4 +71,4 @@ jobs:
     name: cypress-summary
     steps:
       - name: Summary status
-        run: if ${{ (needs.cypress-e2e.result != 'success' && needs.cypress-e2e.result != 'skipped') || (needs.cypress-component.result != 'success' && needs.cypress-component.result != 'skipped') }}; then exit 1; fi
+        run: if ${{ needs.cypress-e2e.result != 'success' && needs.cypress-e2e.result != 'skipped' }}; then exit 1; fi

@@ -8,6 +8,7 @@ process.env.npm_package_name = 'nextcloud-e2e-test-server'
 
 import { configureNextcloud, createSnapshot, setupUsers, startNextcloud, stopNextcloud, waitOnNextcloud } from './lib/docker'
 import { defineConfig } from 'cypress'
+import vitePreprocessor from 'cypress-vite'
 
 export default defineConfig({
 	projectId: 'h2z7r3',
@@ -23,6 +24,8 @@ export default defineConfig({
 		testIsolation: false,
 
 		setupNodeEvents(on, config) {
+			on('file:preprocessor', vitePreprocessor({ configFile: false }))
+
 			// Remove container after run
 			on('after:run', () => {
 				stopNextcloud()
@@ -30,15 +33,15 @@ export default defineConfig({
 
 			// Before the browser launches
 			// starting Nextcloud testing container
-			return startNextcloud(process.env.BRANCH)
+			return startNextcloud(process.env.BRANCH, false, { forceRecreate: true })
 				.then((ip) => {
 					// Setting container's IP as base Url
 					config.baseUrl = `http://${ip}/index.php`
 					return ip
 				})
-				.then(waitOnNextcloud as (ip: string) => Promise<undefined>) // void !== undefined for Typescript
-				.then(configureNextcloud as () => Promise<undefined>)
-				.then(setupUsers as () => Promise<undefined>)
+				.then((ip) => waitOnNextcloud(ip))
+				.then(() => configureNextcloud())
+				.then(() => setupUsers())
 				.then(() => createSnapshot('init'))
 				.then(() => {
 					return config
