@@ -6,30 +6,8 @@
 process.env.NODE_ENV = 'development'
 process.env.npm_package_name = 'nextcloud-e2e-test-server'
 
-/* eslint-disable import/first */
 import { configureNextcloud, createSnapshot, setupUsers, startNextcloud, stopNextcloud, waitOnNextcloud } from './lib/docker'
 import { defineConfig } from 'cypress'
-import CodeCoverage from '@cypress/code-coverage/task'
-import webpackConfig from '@nextcloud/webpack-vue-config'
-import webpackRules from '@nextcloud/webpack-vue-config/rules'
-/* eslint-enable import/first */
-
-webpackRules.RULE_TS = {
-	test: /\.ts$/,
-	use: [{
-		loader: 'ts-loader',
-		options: {
-			// skip typechecking for speed
-			transpileOnly: true,
-		},
-	}],
-}
-webpackConfig.module.rules = Object.values(webpackRules)
-
-// Cypress handle its own entry and output
-delete (webpackConfig as any).entry
-delete (webpackConfig as any).output
-webpackConfig.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx', '.cjs', '.vue']
 
 export default defineConfig({
 	projectId: 'h2z7r3',
@@ -45,8 +23,6 @@ export default defineConfig({
 		testIsolation: false,
 
 		setupNodeEvents(on, config) {
-			CodeCoverage(on, config)
-
 			// Remove container after run
 			on('after:run', () => {
 				stopNextcloud()
