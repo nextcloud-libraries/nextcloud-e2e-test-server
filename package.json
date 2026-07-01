@@ -70,7 +70,10 @@
     "cypress:gui": "cypress open",
     "dev": "echo 'No dev build available, production only' && npm run build",
     "start:nextcloud": "node playwright/start-nextcloud-server.mjs",
-    "test": "npm run build && playwright install chromium --only-shell && playwright test",
+    "test": "npm run test:node && npm run test:playwright",
+    "test:node": "ts-node --esm tests/*.spec.ts",
+    "test:playwright": "playwright test",
+    "pretest": "playwright install chromium --only-shell",
     "watch": "vite --mode production build --watch"
   },
   "dependencies": {

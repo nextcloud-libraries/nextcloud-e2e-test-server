@@ -15,15 +15,9 @@ import { basename, join, resolve, sep } from 'path'
 import { existsSync, readFileSync } from 'fs'
 import { XMLParser } from 'fast-xml-parser'
 
-import { User } from './User'
+import { User } from './User.ts'
 
 const SERVER_IMAGE = 'ghcr.io/nextcloud/continuous-integration-shallow-server'
-const VENDOR_APPS: Record<string, string> = {
-	text: 'https://github.com/nextcloud/text.git',
-	viewer: 'https://github.com/nextcloud/viewer.git',
-	notifications: 'https://github.com/nextcloud/notifications.git',
-	activity: 'https://github.com/nextcloud/activity.git',
-}
 
 export const docker = new Docker()
 
@@ -268,13 +262,20 @@ export const configureNextcloud = async function(apps = ['viewer'], vendoredBran
 		} else if (app in applist.disabled) {
 			// built in or mounted already as the app under development
 			await runOcc(['app:enable', '--force', app], { container, verbose: true })
-		} else if (app in VENDOR_APPS) {
-			// apps that are vendored but still missing (i.e. not build in or mounted already)
-			await runExec(['git', 'clone', '--depth=1', `--branch=${vendoredBranch}`, VENDOR_APPS[app], `apps/${app}`], { container, verbose: true })
-			await runOcc(['app:enable', '--force', app], { container, verbose: true })
 		} else {
-			// try appstore
-			await runOcc(['app:install', '--force', app], { container, verbose: true })
+			const { shippedApps } = JSON.parse(await runExec(['cat', 'core/shipped.json'], { container }))
+			if (shippedApps.includes(app)) {
+				const branchOption = ['main', 'master'].includes(vendoredBranch) ? [] : [`--branch=${vendoredBranch}`]
+				// apps that are vendored but still missing (i.e. not build in or mounted already)
+				await runExec(
+					['git', 'clone', '--depth=1', ...branchOption, `https://github.com/nextcloud/${encodeURIComponent(app)}.git`, `apps/${app}`],
+					{ container, verbose: true },
+				)
+				await runOcc(['app:enable', '--force', app], { container, verbose: true })
+			} else {
+				// try appstore
+				await runOcc(['app:install', '--force', app], { container, verbose: true })
+			}
 		}
 	}
 	console.log('└─ Nextcloud is now ready to use 🎉')
@@ -339,7 +340,7 @@ export const stopNextcloud = async function() {
  *
  * @param container name of the container
  */
-export const getContainerIP = async function(
+export async function getContainerIP(
 	container = getContainer()
 ): Promise<string> {
 	const containerInspect = await container.inspect()
@@ -354,15 +355,17 @@ export const getContainerIP = async function(
 	while (ip === '' && tries < 10) {
 		tries++
 
-		await container.inspect((_err, data) => {
-			ip = data?.NetworkSettings?.Networks?.default?.IPAddress
-				// @ts-expect-error -- fallback to legacy network settings
-				|| data?.NetworkSettings?.IPAddress
-				|| ''
-		})
-
-		if (ip !== '') {
-			break
+		try {
+			const containerInfo = await container.inspect()
+			const network = containerInfo.NetworkSettings.Networks.default
+				|| containerInfo.NetworkSettings.Networks.bridge
+				|| Object.values(containerInfo.NetworkSettings.Networks)[0]
+			if (network.IPAddress) {
+				ip = network.IPAddress
+				break
+			}
+		} catch {
+			// ignore and retry
 		}
 
 		await sleep(1000 * tries)
@@ -383,10 +386,26 @@ export const waitOnNextcloud = async function(ip: string) {
 }
 
 interface RunExecOptions {
-	container: Docker.Container;
-	user: string;
-	env: string[];
-	verbose: boolean;
+	/**
+	 * The container to run the command in. If not provided, the current container will be used.
+	 */
+	container: Docker.Container
+	/**
+	 * The user to run the command as. Defaults to 'www-data'.
+	 */
+	user: string
+	/**
+	 * The command will throw an error if it exits with a non-zero exit code. Defaults to true.
+	 */
+	failOnError: boolean
+	/**
+	 * Environment variables to set for the command. Defaults to an empty array.
+	 */
+	env: string[]
+	/**
+	 * If true, the command's output will be printed to the console. Defaults to false.
+	 */
+	verbose: boolean
 }
 
 /**
@@ -394,7 +413,7 @@ interface RunExecOptions {
  */
 export const runExec = async function(
 	command: string | string[],
-	{ container, user='www-data', verbose=false, env=[] }: Partial<RunExecOptions> = {},
+	{ container, user='www-data', verbose=false, env=[], failOnError=true }: Partial<RunExecOptions> = {},
 ) {
 	container = container || getContainer()
 	const exec = await container.exec({
@@ -427,7 +446,14 @@ export const runExec = async function(
 			}
 		})
 		dataStream.on('error', (err) => reject(err))
-		dataStream.on('end', () => resolve(data.join('')))
+		dataStream.on('end', async () => {
+			const result = await exec.inspect()
+			if (result.ExitCode && failOnError) {
+				reject(new Error(data.join(''), { cause: result.ExitCode }))
+				return
+			}
+			resolve(data.join(''))
+		})
 	})
 }
 
