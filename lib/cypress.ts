@@ -2,11 +2,13 @@
  * SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+
+import type { Selector } from "./selectors"
+
 import { User } from "./User"
 import { getNc, restoreState, runCommand, runOccCommand, saveState } from "./commands"
 import { login, logout } from "./commands/sessions"
 import { createRandomUser, createUser, deleteUser, modifyUser, listUsers, getUserData, enableUser } from "./commands/users"
-import type { Selector } from "./selectors"
 
 declare global {
 	namespace Cypress {

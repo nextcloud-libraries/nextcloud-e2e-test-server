@@ -1,5 +1,6 @@
 {
 	"extends": "../tsconfig.json",
+	"exclude": [],
 	"include": ["./**/*.ts"],
 	"compilerOptions": {
 		"types": ["cypress", "node"],
@@ -14,6 +15,7 @@
 		"strict": true,
 		"noImplicitAny": false,
 		"outDir": "./dist",
+		"rootDir": "..",
 		"ignoreDeprecations": "6.0"
 	},
 }
