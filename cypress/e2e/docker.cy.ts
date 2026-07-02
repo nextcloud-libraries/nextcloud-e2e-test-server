@@ -4,7 +4,6 @@
  */
 
 describe('Run command', function() {
-
 	it('yields the output as stdout', function() {
 		cy.runCommand('ls')
 			.its('stdout')
@@ -17,5 +16,4 @@ describe('Run command', function() {
 			.should('contain', 'DATA')
 			.should('contain', 'Hello')
 	})
-
 })

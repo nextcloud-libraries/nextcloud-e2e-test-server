@@ -3,12 +3,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Selector } from "../selectors/index.ts"
+import type { Selector } from '../selectors/index.ts'
 
-export const getNc = function(selector: Selector, args: Object = {}): Cypress.Chainable<JQuery<HTMLElement>> {
+/**
+ *
+ * @param selector
+ * @param args
+ */
+export function getNc(selector: Selector, args: object = {}): Cypress.Chainable<JQuery<HTMLElement>> {
 	if (typeof selector !== 'function') {
-		console.error(selector)
-		throw new Error('Invalid selector')
+		throw new Error(`Invalid selector: ${String(selector)}`)
 	}
 	return selector(args)
 }

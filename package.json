@@ -69,11 +69,13 @@
     "cypress:e2e": "cypress run --e2e",
     "cypress:gui": "cypress open",
     "dev": "echo 'No dev build available, production only' && npm run build",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "start:nextcloud": "node playwright/start-nextcloud-server.mjs",
+    "pretest": "playwright install chromium --only-shell",
     "test": "npm run test:node && npm run test:playwright",
     "test:node": "ts-node --esm tests/*.spec.ts",
     "test:playwright": "playwright test",
-    "pretest": "playwright install chromium --only-shell",
     "watch": "vite --mode production build --watch"
   },
   "dependencies": {
@@ -84,6 +86,7 @@
     "wait-on": "^9.0.1"
   },
   "devDependencies": {
+    "@nextcloud/eslint-config": "^9.0.0",
     "@nextcloud/vite-config": "^2.5.4",
     "@playwright/test": "^1.61.1",
     "@types/cypress": "^1.1.6",
@@ -92,6 +95,9 @@
     "@types/wait-on": "^5.3.4",
     "cypress": "^15.18.0",
     "cypress-vite": "^1.10.2",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "jiti": "^2.7.0",
     "ts-node": "^10.9.2",
     "tslib": "^2.6.2",
     "typedoc": "^0.28.0",

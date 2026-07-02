@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { test as base } from '@playwright/test'
+import type { User } from '../../../lib/User.ts'
+
 import { createRandomUser, login } from '@nextcloud/e2e-test-server/playwright'
+import { test as base } from '@playwright/test'
 
 interface RandomUserFixture {
 	user: User
