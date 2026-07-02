@@ -39,7 +39,7 @@ describe('Docker: Pre-installation of apps', async () => {
 	})
 })
 
-async function getAppsList(): Promise<{ enabled: Record<string, string>; disabled: Record<string, string> }> {
+async function getAppsList(): Promise<{ enabled: Record<string, string>, disabled: Record<string, string> }> {
 	const { stdout } = await runOcc(['app:list', '--output=json'], { failOnError: true })
 	return JSON.parse(stdout)
 }

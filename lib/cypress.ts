@@ -3,22 +3,23 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Selector } from "./selectors"
+import type { Selector } from './selectors'
 
-import { User } from "./User"
-import { getNc, restoreState, runCommand, runOccCommand, saveState } from "./commands"
-import { login, logout } from "./commands/sessions"
-import { createRandomUser, createUser, deleteUser, modifyUser, listUsers, getUserData, enableUser } from "./commands/users"
+import { getNc, restoreState, runCommand, runOccCommand, saveState } from './commands'
+import { login, logout } from './commands/sessions'
+import { createRandomUser, createUser, deleteUser, enableUser, getUserData, listUsers, modifyUser } from './commands/users'
+import { User } from './User'
 
 declare global {
 	namespace Cypress {
 		interface Chainable {
 			/**
 			 * Get an element from the Nextcloud selector set.
+			 *
 			 * @example cy.getNc(FileList)
 			 *          cy.getNc(FileRow, { id: fileInfo.id })
 			 */
-			getNc(selector: Selector, args?: Object): Cypress.Chainable<JQuery<HTMLElement>>
+			getNc(selector: Selector, args?: object): Cypress.Chainable<JQuery<HTMLElement>>
 
 			/**
 			 * Login on a Nextcloud instance
@@ -60,14 +61,14 @@ declare global {
 			 * @return List of user IDs or list of Users (if details was set to true)
 			 */
 			listUsers<b extends boolean>(details?: b): Cypress.Chainable<b extends true ? Record<string, string>[] : string[]>
-			listUsers(details?: boolean): Cypress.Chainable<Record<string,string>[] | string[]>
+			listUsers(details?: boolean): Cypress.Chainable<Record<string, string>[] | string[]>
 
 			/**
 			 * Modify an attribute of a given user on the Nextcloud instance
 			 *
 			 * @param user User who modifies their metadata
- 			 * @param key Attribute name
- 			 * @param value New attribute value
+			 * @param key Attribute name
+			 * @param value New attribute value
 			 */
 			modifyUser(user: User, key: string, value: any): Cypress.Chainable<Cypress.Response<any>>
 
@@ -120,10 +121,11 @@ declare global {
  * Register all existing commands provided by this library
  *
  * You can also manually register those commands by importing them
+ *
  * @example import { login } from '@nextcloud/e2e-test-server/commands'
  *          Cypress.Commands.add('login', login)
  */
-export const addCommands = function() {
+export function addCommands() {
 	Cypress.Commands.add('getNc', getNc)
 	Cypress.Commands.add('login', login)
 	Cypress.Commands.add('logout', logout)

@@ -3,15 +3,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { User } from "../User"
+import type { User } from '../User'
 
 /**
  * You should always upload files and/or create users
  * before login, so that the cookies are NOT YET defined.
  *
+ * @param user
  * @see https://docs.cypress.io/api/commands/session
  */
-export const login = function(user: User) {
+export function login(user: User) {
 	cy.session(user, function() {
 		cy.request('/csrftoken').then(({ body }) => {
 			const requestToken = body.token
@@ -21,12 +22,12 @@ export const login = function(user: User) {
 				body: {
 					user: user.userId,
 					password: user.password,
-					requesttoken: requestToken
+					requesttoken: requestToken,
 				},
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 					// Add the Origin header so that the request is not blocked by the browser.
-					'Origin': (Cypress.config('baseUrl') ?? '').replace('index.php/', ''),
+					Origin: (Cypress.config('baseUrl') ?? '').replace('index.php/', ''),
 				},
 				followRedirect: false,
 			})
@@ -46,7 +47,7 @@ export const login = function(user: User) {
  *
  * @see https://docs.cypress.io/api/commands/session#Session-caching
  */
-export const logout = function() {
+export function logout() {
 	cy.request('/csrftoken').then(({ body }) => {
 		const requestToken = body.token
 		cy.visit(`/logout?requesttoken=${encodeURIComponent(requestToken)}`)

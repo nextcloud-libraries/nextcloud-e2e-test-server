@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { runCommand } from "./docker"
+import { runCommand } from './docker'
 
+/**
+ *
+ */
 export function saveState(): Cypress.Chainable<string> {
 	const snapshot = Math.random().toString(36).substring(7)
 
@@ -16,8 +19,12 @@ export function saveState(): Cypress.Chainable<string> {
 	return cy.wrap(snapshot)
 }
 
+/**
+ *
+ * @param snapshot
+ */
 export function restoreState(snapshot: string = 'init') {
-	runCommand(`rm -vfr ./data/*`)
+	runCommand('rm -vfr ./data/*')
 	runCommand(`tar -xf '/var/www/html/data-${snapshot}.tar'`)
 
 	// Any user sessions created between saveState() and restoreState()

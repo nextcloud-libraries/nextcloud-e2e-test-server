@@ -19,4 +19,3 @@ export class User {
 		return new User(uid)
 	}
 }
-

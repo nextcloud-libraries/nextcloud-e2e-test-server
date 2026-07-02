@@ -7,14 +7,12 @@ import type { Container } from 'dockerode'
 import type { Stream } from 'stream'
 
 import Docker from 'dockerode'
-import waitOn from 'wait-on'
-import tarStreamer from 'tar-stream'
-
-import { PassThrough } from 'stream'
-import { basename, join, resolve, sep } from 'path'
-import { existsSync, readFileSync } from 'fs'
 import { XMLParser } from 'fast-xml-parser'
-
+import { existsSync, readFileSync } from 'fs'
+import { basename, join, resolve, sep } from 'path'
+import { PassThrough } from 'stream'
+import tarStreamer from 'tar-stream'
+import waitOn from 'wait-on'
 import { User } from './User.ts'
 
 const SERVER_IMAGE = 'ghcr.io/nextcloud/continuous-integration-shallow-server'
@@ -22,14 +20,14 @@ const SERVER_IMAGE = 'ghcr.io/nextcloud/continuous-integration-shallow-server'
 export const docker = new Docker()
 
 // Store the container name, different names are used to prevent conflicts when testing multiple apps locally
-let _containerName: string|null = null
+let _containerName: string | null = null
 // Store latest server branch used, will be used for vendored apps
 let _serverBranch = 'master'
 
 /**
  * Get the container name that is currently created and/or used by dockerode
  */
-export const getContainerName = function(): string {
+export function getContainerName(): string {
 	if (_containerName === null) {
 		const app = basename(process.cwd()).replace(' ', '')
 		_containerName = `nextcloud-e2e-test-server_${app}`
@@ -41,13 +39,14 @@ export const getContainerName = function(): string {
  * Get the current container used
  * Throws if not found
  */
-export const getContainer = function(): Container {
+export function getContainer(): Container {
 	return docker.getContainer(getContainerName())
 }
 
 interface StartOptions {
 	/**
 	 * Force recreate the container even if an old one is found
+	 *
 	 * @default false
 	 */
 	forceRecreate?: boolean
@@ -55,6 +54,7 @@ interface StartOptions {
 	/**
 	 * Additional mounts to create on the container
 	 * You can pass a mapping from server path (relative to Nextcloud root) to your local file system
+	 *
 	 * @example ```js
 	 * { config: '/path/to/local/config' }
 	 * ```
@@ -71,16 +71,16 @@ interface StartOptions {
 /**
  * Start the testing container
  *
- * @param {string|undefined} branch server branch to use (default 'master')
- * @param {boolean|string|undefined} mountApp bind mount app within server (`true` for autodetect, `false` to disable, or a string to force a path) (default true)
- * @param {StartOptions|undefined} options Optional parameters to configure the container creation
+ * @param branch server branch to use (default 'master')
+ * @param mountApp bind mount app within server (`true` for autodetect, `false` to disable, or a string to force a path) (default true)
+ * @param options Optional parameters to configure the container creation
  * @return Promise resolving to the IP address of the server
  * @throws {Error} If Nextcloud container could not be started
  */
-export async function startNextcloud(branch = 'master', mountApp: boolean|string = true, options: StartOptions = {}): Promise<string> {
+export async function startNextcloud(branch = 'master', mountApp: boolean | string = true, options: StartOptions = {}): Promise<string> {
 	let appPath = mountApp === true ? process.cwd() : mountApp
-	let appId: string|undefined
-	let appVersion: string|undefined
+	let appId: string | undefined
+	let appVersion: string | undefined
 	if (appPath) {
 		console.log('Mounting app directories…')
 		while (appPath) {
@@ -150,13 +150,15 @@ export async function startNextcloud(branch = 'master', mountApp: boolean|string
 		if (appPath !== false) {
 			mounts.push(`${appPath}:/var/www/html/${appsFolder}/${appId}:ro`)
 		}
-		
-		const PortBindings = !options.exposePort ? undefined : {
-			'80/tcp': [{
-				HostIP: '0.0.0.0',
-				HostPort: options.exposePort.toString(),
-			}],
-		}
+
+		const PortBindings = !options.exposePort
+			? undefined
+			: {
+					'80/tcp': [{
+						HostIP: '0.0.0.0',
+						HostPort: options.exposePort.toString(),
+					}],
+				}
 
 		// On macOS we need to expose the port since the docker container is running within a VM
 		const autoExposePort = process.platform === 'darwin'
@@ -165,12 +167,14 @@ export async function startNextcloud(branch = 'master', mountApp: boolean|string
 			Image: SERVER_IMAGE,
 			name: getContainerName(),
 			Env: [`BRANCH=${branch}`, 'APCU=1'],
-			Volumes: mountedAppsFolder ? {
-				apps_writable: {
-					Mountpoint: '/var/www/html/apps_writable',
-					Readonly: false,
-				},
-			} : undefined,
+			Volumes: mountedAppsFolder
+				? {
+						apps_writable: {
+							Mountpoint: '/var/www/html/apps_writable',
+							Readonly: false,
+						},
+					}
+				: undefined,
 			HostConfig: {
 				Binds: mounts.length > 0 ? mounts : undefined,
 				PortBindings,
@@ -205,7 +209,10 @@ export async function startNextcloud(branch = 'master', mountApp: boolean|string
 	}
 }
 
-const pullImage = function() {
+/**
+ *
+ */
+function pullImage() {
 	// Pulling images
 	console.log('\nPulling images… ⏳')
 	return new Promise((resolve, reject) => docker.pull(SERVER_IMAGE, (_: unknown, stream: Stream) => {
@@ -216,22 +223,22 @@ const pullImage = function() {
 			reject(err)
 		}
 		// https://github.com/apocas/dockerode/issues/357
-		if(stream) {
+		if (stream) {
 			docker.modem.followProgress(stream, onFinished)
 		} else {
 			reject('Failed to open stream')
 		}
 	}))
 		.then(() => console.log('└─ Done'))
-		.catch(err => console.log(`└─ 🛑 FAILED! Trying to continue with existing image. (${err})`))
+		.catch((err) => console.log(`└─ 🛑 FAILED! Trying to continue with existing image. (${err})`))
 }
 
 /**
  * Configure Nextcloud
  *
- * @param {string[]} apps List of default apps to install (default is ['viewer'])
- * @param {string|undefined} vendoredBranch The branch used for vendored apps, should match server (defaults to latest branch used for `startNextcloud` or fallsback to `master`)
- * @param {Container|undefined} container Optional server container to use (defaults to current container)
+ * @param apps List of default apps to install (default is ['viewer'])
+ * @param vendoredBranch The branch used for vendored apps, should match server (defaults to latest branch used for `startNextcloud` or fallsback to `master`)
+ * @param container Optional server container to use (defaults to current container)
  */
 export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: string, container?: Container) {
 	vendoredBranch = vendoredBranch || _serverBranch
@@ -318,12 +325,12 @@ export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: str
 /**
  * Setup test users
  *
- * @param {Container|undefined} container Optional server container to use (defaults to current container)
+ * @param container Optional server container to use (defaults to current container)
  */
-export const setupUsers = async function(container?: Container) {
+export async function setupUsers(container?: Container) {
 	console.log('\nCreating test users… 👤')
 	const users = ['test1', 'test2', 'test3', 'test4', 'test5']
-		.map(uid => new User(uid))
+		.map((uid) => new User(uid))
 	for (const user of users) {
 		await addUser(user, { container, verbose: true })
 	}
@@ -332,11 +339,12 @@ export const setupUsers = async function(container?: Container) {
 
 /**
  * Create a snapshot of the current database
- * @param {string|undefined} snapshot Name of the snapshot (default is a timestamp)
- * @param {Container|undefined} container Optional server container to use (defaults to current container)
+ *
+ * @param snapshot Name of the snapshot (default is a timestamp)
+ * @param container Optional server container to use (defaults to current container)
  * @return Promise resolving to the snapshot name
  */
-export const createSnapshot = async function(snapshot?: string, container?: Container): Promise<string> {
+export async function createSnapshot(snapshot?: string, container?: Container): Promise<string> {
 	const hash = new Date().toISOString().replace(/[^0-9]/g, '')
 	console.log('\nCreating init DB snapshot…')
 	await runExec(['cp', '/var/www/html/data/owncloud.db', `/var/www/html/data/owncloud.db-${snapshot ?? hash}`], { container, verbose: true })
@@ -346,10 +354,11 @@ export const createSnapshot = async function(snapshot?: string, container?: Cont
 
 /**
  * Restore a snapshot of the database
- * @param {string|undefined} snapshot Name of the snapshot (default is 'init')
- * @param {Container|undefined} container Optional server container to use (defaults to current container)
+ *
+ * @param snapshot Name of the snapshot (default is 'init')
+ * @param container Optional server container to use (defaults to current container)
  */
-export const restoreSnapshot = async function(snapshot = 'init', container?: Container) {
+export async function restoreSnapshot(snapshot = 'init', container?: Container) {
 	console.log('\nRestoring DB snapshot…')
 	await runExec(['cp', `/var/www/html/data/owncloud.db-${snapshot}`, '/var/www/html/data/owncloud.db'], { container, verbose: true })
 	console.log('└─ Done')
@@ -358,7 +367,7 @@ export const restoreSnapshot = async function(snapshot = 'init', container?: Con
 /**
  * Force stop the testing container
  */
-export const stopNextcloud = async function() {
+export async function stopNextcloud() {
 	try {
 		const container = getContainer()
 		console.log('Stopping Nextcloud container…')
@@ -374,9 +383,7 @@ export const stopNextcloud = async function() {
  *
  * @param container name of the container
  */
-export async function getContainerIP(
-	container = getContainer()
-): Promise<string> {
+export async function getContainerIP(container = getContainer()): Promise<string> {
 	const containerInspect = await container.inspect()
 	const hostPort = containerInspect.NetworkSettings.Ports['80/tcp']?.[0]?.HostPort
 
@@ -413,7 +420,11 @@ export async function getContainerIP(
 // Until we can properly configure the baseUrl retry intervals,
 // We need to make sure the server is already running before cypress
 // https://github.com/cypress-io/cypress/issues/22676
-export const waitOnNextcloud = async function(ip: string) {
+/**
+ *
+ * @param ip
+ */
+export async function waitOnNextcloud(ip: string) {
 	console.log('├─ Waiting for Nextcloud to be ready… ⏳')
 	await waitOn({ resources: [`http://${ip}/index.php`] })
 	console.log('└─ Done')
@@ -450,10 +461,18 @@ type RunExecResult = {
 
 /**
  * Execute a command in the container and return stdout/stderr separately.
+ *
+ * @param command
+ * @param root0
+ * @param root0.container
+ * @param root0.user
+ * @param root0.verbose
+ * @param root0.env
+ * @param root0.failOnError
  */
 export async function runExec(
 	command: string | string[],
-	{ container, user='www-data', verbose=false, env=[], failOnError=true }: Partial<RunExecOptions> = {},
+	{ container, user = 'www-data', verbose = false, env = [], failOnError = true }: Partial<RunExecOptions> = {},
 ): Promise<RunExecResult> {
 	container = container || getContainer()
 	const exec = await container.exec({
@@ -506,7 +525,7 @@ export async function runExec(
 					stderr: stderr.join(''),
 					exitCode: inspectionResult.ExitCode ?? 0,
 				}
-				
+
 				if (result.exitCode && failOnError) {
 					settleReject(new Error('command exited with non-zero exit code', { cause: result }))
 					return
@@ -560,10 +579,16 @@ export async function runExec(
 
 /**
  * Execute an occ command in the container
+ *
+ * @param command
+ * @param root0
+ * @param root0.container
+ * @param root0.env
+ * @param root0.verbose
  */
 export async function runOcc(
 	command: string | string[],
-	{ container, env=[], verbose=false, ...rest }: Partial<Omit<RunExecOptions, 'user'>> = {},
+	{ container, env = [], verbose = false, ...rest }: Partial<Omit<RunExecOptions, 'user'>> = {},
 ) {
 	const cmdArray = typeof command === 'string' ? [command] : command
 	return runExec(['php', 'occ', ...cmdArray], { ...rest, container, verbose, env })
@@ -571,17 +596,22 @@ export async function runOcc(
 
 /**
  * Set a Nextcloud system config in the container.
+ *
+ * @param key
+ * @param value
+ * @param root0
+ * @param root0.container
  */
-export const setSystemConfig = function(
-	key: string,
-	value: string,
-	{ container }: { container?: Docker.Container } = {},
-) {
+export function setSystemConfig(key: string, value: string, { container }: { container?: Docker.Container } = {}) {
 	return runOcc(['config:system:set', key, '--value', value], { container, verbose: true })
 }
 
 /**
  * Get a Nextcloud system config value from the container.
+ *
+ * @param key
+ * @param root0
+ * @param root0.container
  */
 export async function getSystemConfig(
 	key: string,
@@ -591,20 +621,26 @@ export async function getSystemConfig(
 	return stdout.trim()
 }
 
-
 /**
  * Add a user to the Nextcloud in the container.
+ *
+ * @param user
+ * @param root0
+ * @param root0.container
+ * @param root0.env
+ * @param root0.verbose
  */
-export const addUser = function(
-	user: User,
-	{ container, env=[], verbose=false }: Partial<Omit<RunExecOptions, 'user'>> = {},
-) {
+export function addUser(user: User, { container, env = [], verbose = false }: Partial<Omit<RunExecOptions, 'user'>> = {}) {
 	return runOcc(
 		['user:add', user.userId, '--password-from-env'],
-		{ container, verbose, env: ['OC_PASS=' + user.password, ...env] }
+		{ container, verbose, env: ['OC_PASS=' + user.password, ...env] },
 	)
 }
 
-const sleep = function(milliseconds: number) {
+/**
+ *
+ * @param milliseconds
+ */
+function sleep(milliseconds: number) {
 	return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }

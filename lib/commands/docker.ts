@@ -5,6 +5,9 @@
 
 import { basename } from '@nextcloud/paths'
 
+/**
+ *
+ */
 function getContainerName(): Cypress.Chainable<string> {
 	return cy.exec('pwd').then(({ stdout }) => {
 		const name = basename(stdout).replace(' ', '')
@@ -12,6 +15,11 @@ function getContainerName(): Cypress.Chainable<string> {
 	})
 }
 
+/**
+ *
+ * @param command
+ * @param options
+ */
 export function runCommand(command: string, options?: Partial<Cypress.ExecOptions>): Cypress.Chainable<Cypress.Exec> {
 	const env = Object.entries(options?.env ?? {})
 		.map(([name, value]) => `-e '${name}=${value}'`)
@@ -22,5 +30,4 @@ export function runCommand(command: string, options?: Partial<Cypress.ExecOption
 			// Wrapping command inside bash -c "..." to allow using '*'.
 			return cy.exec(`docker exec --user www-data --workdir /var/www/html ${env} ${containerName} bash -c "${command}"`, options)
 		})
-
 }

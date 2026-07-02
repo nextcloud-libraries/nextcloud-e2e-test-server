@@ -6,9 +6,9 @@
 process.env.NODE_ENV = 'development'
 process.env.npm_package_name = 'nextcloud-e2e-test-server'
 
-import { configureNextcloud, createSnapshot, setupUsers, startNextcloud, stopNextcloud, waitOnNextcloud } from './lib/docker'
 import { defineConfig } from 'cypress'
 import vitePreprocessor from 'cypress-vite'
+import { configureNextcloud, createSnapshot, setupUsers, startNextcloud, stopNextcloud, waitOnNextcloud } from './lib/docker'
 
 export default defineConfig({
 	projectId: 'h2z7r3',

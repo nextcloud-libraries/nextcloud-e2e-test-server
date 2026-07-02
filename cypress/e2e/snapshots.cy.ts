@@ -9,7 +9,7 @@ describe('Create a snapshot and a user', function() {
 	let snapshot: string
 
 	it('Create a snapshot', function() {
-		cy.saveState().then(_snapshot => {
+		cy.saveState().then((_snapshot) => {
 			snapshot = _snapshot
 		})
 	})
@@ -24,7 +24,7 @@ describe('Create a snapshot and a user', function() {
 		cy.visit('/apps/files')
 		cy.url().should('include', '/apps/files')
 
-		cy.listUsers().then(users => {
+		cy.listUsers().then((users) => {
 			expect(users).to.contain(user.userId)
 		})
 	})
@@ -37,7 +37,7 @@ describe('Create a snapshot and a user', function() {
 		cy.visit('/apps/files')
 		cy.url().should('include', '/login')
 
-		cy.listUsers().then(users => {
+		cy.listUsers().then((users) => {
 			expect(users).to.not.contain(user.userId)
 		})
 	})

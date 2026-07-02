@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { User } from './User'
-import { addUser } from './docker'
 import type { APIRequestContext } from 'playwright'
+
+import { addUser } from './docker'
+import { User } from './User'
 
 /**
  * Create a new random user
+ *
  * @return The new user
  */
 export async function createRandomUser(): Promise<User> {
@@ -53,11 +55,9 @@ export async function login(
 		maxRedirects: 0,
 	})
 
-	const location = loginResponse.headers()['location'] ?? ''
+	const location = loginResponse.headers().location ?? ''
 	if (loginResponse.status() !== 303 || /\/login(\?|$)/.test(location)) {
-		throw new Error(
-			`Failed to login as "${user.userId}": expected a redirect away from the login page `
-			+ `but got status ${loginResponse.status()} redirecting to "${location || '<none>'}"`,
-		)
+		throw new Error(`Failed to login as "${user.userId}": expected a redirect away from the login page `
+			+ `but got status ${loginResponse.status()} redirecting to "${location || '<none>'}"`)
 	}
 }
