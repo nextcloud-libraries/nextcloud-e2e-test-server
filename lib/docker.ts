@@ -9,6 +9,7 @@ import type { Stream } from 'stream'
 
 import Docker from 'dockerode'
 import waitOn from 'wait-on'
+import tarStreamer from 'tar-stream'
 
 import { PassThrough } from 'stream'
 import { basename, join, resolve, sep } from 'path'
@@ -140,13 +141,17 @@ export async function startNextcloud(branch = 'master', mountApp: boolean|string
 		console.log('\nStarting Nextcloud container… 🚀')
 		console.log(`├─ Using branch '${branch}'`)
 
+		const mountedAppsFolder = !!Object.keys(options.mounts ?? {}).find((folder) => folder === 'apps')
+		const appsFolder = mountedAppsFolder ? 'apps_writable' : 'apps'
+
 		const mounts: string[] = []
-		if (appPath !== false) {
-			mounts.push(`${appPath}:/var/www/html/apps/${appId}:ro`)
-		}
 		Object.entries(options.mounts ?? {})
 			.forEach(([server, local]) => mounts.push(`${local}:/var/www/html/${server}:ro`))
 
+		if (appPath !== false) {
+			mounts.push(`${appPath}:/var/www/html/${appsFolder}/${appId}:ro`)
+		}
+		
 		const PortBindings = !options.exposePort ? undefined : {
 			'80/tcp': [{
 				HostIP: '0.0.0.0',
@@ -161,6 +166,12 @@ export async function startNextcloud(branch = 'master', mountApp: boolean|string
 			Image: SERVER_IMAGE,
 			name: getContainerName(),
 			Env: [`BRANCH=${branch}`, 'APCU=1'],
+			Volumes: mountedAppsFolder ? {
+				apps_writable: {
+					Mountpoint: '/var/www/html/apps_writable',
+					Readonly: false,
+				},
+			} : undefined,
 			HostConfig: {
 				Binds: mounts.length > 0 ? mounts : undefined,
 				PortBindings,
@@ -223,7 +234,7 @@ const pullImage = function() {
  * @param {string|undefined} vendoredBranch The branch used for vendored apps, should match server (defaults to latest branch used for `startNextcloud` or fallsback to `master`)
  * @param {Container|undefined} container Optional server container to use (defaults to current container)
  */
-export const configureNextcloud = async function(apps = ['viewer'], vendoredBranch?: string, container?: Container) {
+export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: string, container?: Container) {
 	vendoredBranch = vendoredBranch || _serverBranch
 
 	console.log('\nConfiguring Nextcloud…')
@@ -246,13 +257,38 @@ export const configureNextcloud = async function(apps = ['viewer'], vendoredBran
 		|| !local.includes('Memcache\\APCu')
 		|| !hashing.includes('true')) {
 		console.log('└─ APCu is not properly configured 🛑')
-		throw new Error('APCu is not properly configured')
+		throw new Error('APCu is not properly configured', { cause: { distributed, local, hashing } })
 	}
 	console.log('│  └─ OK !')
 
 	// Build app list
 	const { stdout: json } = await runOcc(['app:list', '--output', 'json'], { container, verbose: true })
 	const applist = JSON.parse(json)
+
+	const mountedAppsFolder = (await container.inspect()).Config.Volumes?.apps_writable !== undefined
+	const appsFolder = mountedAppsFolder ? 'apps_writable' : 'apps'
+	if (mountedAppsFolder) {
+		console.log(`├─ Using ${appsFolder} folder for mounted apps`)
+		const appsConfig = `<?php
+	$CONFIG = [
+		'apps_paths' => [
+			[
+					'path' => '/var/www/html/apps',
+					'url' => '/apps',
+					'writable' => false,
+			],
+			[
+					'path' => '/var/www/html/${appsFolder}',
+					'url' => '/${appsFolder}',
+					'writable' => true,
+			],
+	],
+];`
+		const stream = tarStreamer.pack()
+		stream.entry({ name: 'apps.config.php' }, appsConfig)
+		stream.finalize()
+		await container.putArchive(stream, { path: '/var/www/html/config' })
+	}
 
 	// Enable apps and give status
 	for (const app of apps) {
@@ -266,9 +302,8 @@ export const configureNextcloud = async function(apps = ['viewer'], vendoredBran
 			const { shippedApps } = JSON.parse(jsonOutput)
 			if (shippedApps.includes(app)) {
 				const branchOption = ['main', 'master'].includes(vendoredBranch) ? [] : [`--branch=${vendoredBranch}`]
-				// apps that are vendored but still missing (i.e. not build in or mounted already)
 				await runExec(
-					['git', 'clone', '--depth=1', ...branchOption, `https://github.com/nextcloud/${encodeURIComponent(app)}.git`, `apps/${app}`],
+					['git', 'clone', '--depth=1', ...branchOption, `https://github.com/nextcloud/${encodeURIComponent(app)}.git`, `${appsFolder}/${app}`],
 					{ container, verbose: true },
 				)
 				await runOcc(['app:enable', '--force', app], { container, verbose: true })
