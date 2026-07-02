@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
@@ -262,7 +261,7 @@ export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: str
 	console.log('│  └─ OK !')
 
 	// Build app list
-	const { stdout: json } = await runOcc(['app:list', '--output', 'json'], { container, verbose: true })
+	const { stdout: json } = await runOcc(['app:list', '--output', 'json'], { container })
 	const applist = JSON.parse(json)
 
 	const mountedAppsFolder = (await container.inspect()).Config.Volumes?.apps_writable !== undefined
