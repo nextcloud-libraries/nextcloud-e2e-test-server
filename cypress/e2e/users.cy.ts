@@ -1,9 +1,10 @@
-/**
+/*
  * SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { User } from '../../dist/cypress'
-import { randHash } from '../utils'
+
+import { User } from '../../dist/cypress.ts'
+import { randHash } from '../utils/index.ts'
 
 describe('Create user and login', function() {
 	it('Create random user and log in', function() {

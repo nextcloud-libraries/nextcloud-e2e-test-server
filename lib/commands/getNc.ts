@@ -12,8 +12,7 @@ import type { Selector } from '../selectors/index.ts'
  */
 export function getNc(selector: Selector, args: object = {}): Cypress.Chainable<JQuery<HTMLElement>> {
 	if (typeof selector !== 'function') {
-		console.error(selector)
-		throw new Error('Invalid selector')
+		throw new Error(`Invalid selector: ${String(selector)}`)
 	}
 	return selector(args)
 }

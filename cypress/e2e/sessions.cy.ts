@@ -1,8 +1,9 @@
-/**
+/*
  * SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { User } from '../../dist/cypress'
+
+import { User } from '../../lib/cypress.ts'
 
 describe('Login and logout', function() {
 	it('Login and see the default files list', function() {

@@ -1,16 +1,18 @@
-/**
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/*
  * SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Selector } from './selectors'
+import type { Selector } from './selectors/index.ts'
 
-import { getNc, restoreState, runCommand, runOccCommand, saveState } from './commands'
-import { login, logout } from './commands/sessions'
-import { createRandomUser, createUser, deleteUser, enableUser, getUserData, listUsers, modifyUser } from './commands/users'
-import { User } from './User'
+import { getNc, restoreState, runCommand, runOccCommand, saveState } from './commands/index.ts'
+import { login, logout } from './commands/sessions.ts'
+import { createRandomUser, createUser, deleteUser, enableUser, getUserData, listUsers, modifyUser } from './commands/users.ts'
+import { User } from './User.ts'
 
 declare global {
+	// eslint-disable-next-line @typescript-eslint/no-namespace -- required to augment the Cypress.Chainable interface
 	namespace Cypress {
 		interface Chainable {
 			/**
@@ -70,7 +72,7 @@ declare global {
 			 * @param key Attribute name
 			 * @param value New attribute value
 			 */
-			modifyUser(user: User, key: string, value: any): Cypress.Chainable<Cypress.Response<any>>
+			modifyUser(user: User, key: string, value: unknown): Cypress.Chainable<Cypress.Response<any>>
 
 			/**
 			 * Enable or disable a given user

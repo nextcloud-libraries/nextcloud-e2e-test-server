@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { User } from '../User'
+import { User } from '../User.ts'
 
 export const randHash = () => Math.random().toString(36).replace(/[^a-z]+/g, '').slice(0, 10)
 
@@ -25,7 +25,7 @@ export function createRandomUser(): Cypress.Chainable<User> {
  *
  * @param user
  */
-export function createUser(user: User): Cypress.Chainable<Cypress.Response<any>> {
+export function createUser(user: User): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users?format=json`.replace('index.php/', '')
 
 	cy.clearCookies()
@@ -105,7 +105,7 @@ export function listUsers(details = false): Cypress.Chainable<Record<string, str
  *
  * @param user User to delete
  */
-export function deleteUser(user: User): Cypress.Chainable<Cypress.Response<any>> {
+export function deleteUser(user: User): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users/${user.userId}`.replace('index.php/', '')
 
 	cy.clearCookies()
@@ -136,7 +136,7 @@ export function deleteUser(user: User): Cypress.Chainable<Cypress.Response<any>>
  * @param key Attribute name
  * @param value New attribute value
  */
-export function modifyUser(user: User, key: string, value: any): Cypress.Chainable<Cypress.Response<any>> {
+export function modifyUser(user: User, key: string, value: unknown): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users/${user.userId}`.replace('index.php/', '')
 
 	return cy.request({
@@ -166,7 +166,7 @@ export function modifyUser(user: User, key: string, value: any): Cypress.Chainab
  *
  * @param user User to change
  */
-export function getUserData(user: User): Cypress.Chainable<Cypress.Response<any>> {
+export function getUserData(user: User): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users/${user.userId}`.replace('index.php/', '')
 
 	return cy.request({
@@ -192,7 +192,7 @@ export function getUserData(user: User): Cypress.Chainable<Cypress.Response<any>
  * @param user the user to dis- / enable
  * @param enable True if the user should be enable, false to disable
  */
-export function enableUser(user: User, enable = true): Cypress.Chainable<Cypress.Response<any>> {
+export function enableUser(user: User, enable = true): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users/${user.userId}/${enable ? 'enable' : 'disable'}`.replace('index.php/', '')
 
 	return cy.request({

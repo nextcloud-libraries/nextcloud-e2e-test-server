@@ -132,7 +132,7 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 			}
 			// Forcing any remnants to be removed just in case
 			await oldContainer.remove({ force: true })
-		} catch (error) {
+		} catch {
 			console.log('└─ None found!')
 		}
 
@@ -205,7 +205,7 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 		console.log('└─ Unable to start the container 🛑')
 		console.log(err)
 		stopNextcloud()
-		throw new Error('Unable to start the container')
+		throw new Error('Unable to start the container', { cause: err })
 	}
 }
 
@@ -415,14 +415,10 @@ export async function getContainerIP(container = getContainer()): Promise<string
 	return ip
 }
 
-// Would be simpler to start the container from cypress.config.ts,
-// but when checking out different branches, it can take a few seconds
-// Until we can properly configure the baseUrl retry intervals,
-// We need to make sure the server is already running before cypress
-// https://github.com/cypress-io/cypress/issues/22676
 /**
+ * Wait for Nextcloud to be ready
  *
- * @param ip
+ * @param ip - The IP address of the Nextcloud container
  */
 export async function waitOnNextcloud(ip: string) {
 	console.log('├─ Waiting for Nextcloud to be ready… ⏳')
@@ -462,13 +458,13 @@ type RunExecResult = {
 /**
  * Execute a command in the container and return stdout/stderr separately.
  *
- * @param command
- * @param root0
- * @param root0.container
- * @param root0.user
- * @param root0.verbose
- * @param root0.env
- * @param root0.failOnError
+ * @param command - The command to execute, either as a string or an array of strings (arguments)
+ * @param options - Options for executing the command
+ * @param options.container - The container to run the command in. If not provided, the current container will be used.
+ * @param options.user - The user to run the command as. Defaults to 'www-data'.
+ * @param options.verbose - If true, the command's output will be printed to the console. Defaults to false.
+ * @param options.env - Environment variables to set for the command. Defaults to an empty array.
+ * @param options.failOnError - The command will throw an error if it exits with a non-zero exit code. Defaults to true.
  */
 export async function runExec(
 	command: string | string[],
@@ -580,11 +576,11 @@ export async function runExec(
 /**
  * Execute an occ command in the container
  *
- * @param command
- * @param root0
- * @param root0.container
- * @param root0.env
- * @param root0.verbose
+ * @param command - The occ command to execute, either as a string or an array of strings (arguments)
+ * @param options - Options for executing the command
+ * @param options.container - The container to run the command in. If not provided, the current container will be used.
+ * @param options.env - Environment variables to set for the command. Defaults to an empty array.
+ * @param options.verbose - If true, the command's output will be printed to the console. Defaults to false.
  */
 export async function runOcc(
 	command: string | string[],
@@ -597,10 +593,10 @@ export async function runOcc(
 /**
  * Set a Nextcloud system config in the container.
  *
- * @param key
- * @param value
- * @param root0
- * @param root0.container
+ * @param key - The config key to set
+ * @param value - The value to set for the config key
+ * @param options - Options for executing the command
+ * @param options.container - The container to run the command in. If not provided, the current container will be used.
  */
 export function setSystemConfig(key: string, value: string, { container }: { container?: Docker.Container } = {}) {
 	return runOcc(['config:system:set', key, '--value', value], { container, verbose: true })
@@ -609,9 +605,9 @@ export function setSystemConfig(key: string, value: string, { container }: { con
 /**
  * Get a Nextcloud system config value from the container.
  *
- * @param key
- * @param root0
- * @param root0.container
+ * @param key - The config key to retrieve
+ * @param options - Options for executing the command
+ * @param options.container - The container to run the command in. If not provided, the current container will be used.
  */
 export async function getSystemConfig(
 	key: string,
@@ -624,11 +620,11 @@ export async function getSystemConfig(
 /**
  * Add a user to the Nextcloud in the container.
  *
- * @param user
- * @param root0
- * @param root0.container
- * @param root0.env
- * @param root0.verbose
+ * @param user - The user object containing userId and password
+ * @param options - Options for executing the command
+ * @param options.container - The container to run the command in. If not provided, the current container will be used.
+ * @param options.env - Environment variables to set for the command. Defaults to an empty array.
+ * @param options.verbose - If true, the command's output will be printed to the console. Defaults to false.
  */
 export function addUser(user: User, { container, env = [], verbose = false }: Partial<Omit<RunExecOptions, 'user'>> = {}) {
 	return runOcc(
@@ -638,8 +634,9 @@ export function addUser(user: User, { container, env = [], verbose = false }: Pa
 }
 
 /**
+ * Pauses execution for a specified number of milliseconds.
  *
- * @param milliseconds
+ * @param milliseconds - The number of milliseconds to sleep.
  */
 function sleep(milliseconds: number) {
 	return new Promise((resolve) => setTimeout(resolve, milliseconds))

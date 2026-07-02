@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { User } from '../User'
+import type { User } from '../User.ts'
 
 /**
  * You should always upload files and/or create users
  * before login, so that the cookies are NOT YET defined.
  *
- * @param user
+ * @param user - The user to login with
  * @see https://docs.cypress.io/api/commands/session
  */
 export function login(user: User) {

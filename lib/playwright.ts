@@ -5,8 +5,8 @@
 
 import type { APIRequestContext } from 'playwright'
 
-import { addUser } from './docker'
-import { User } from './User'
+import { addUser } from './docker.ts'
+import { User } from './User.ts'
 
 /**
  * Create a new random user
@@ -31,7 +31,7 @@ export async function createRandomUser(): Promise<User> {
  *
  * @param request API request object
  * @param user The user to login
- * @throws If the credentials are rejected or the login redirect is unexpected
+ * @throws {Error} If the credentials are rejected or the login redirect is unexpected
  */
 export async function login(
 	request: APIRequestContext,
