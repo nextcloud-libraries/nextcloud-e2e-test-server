@@ -251,7 +251,7 @@ export const configureNextcloud = async function(apps = ['viewer'], vendoredBran
 	console.log('│  └─ OK !')
 
 	// Build app list
-	const json = await runOcc(['app:list', '--output', 'json'], { container, verbose: true })
+	const { stdout: json } = await runOcc(['app:list', '--output', 'json'], { container, verbose: true })
 	const applist = JSON.parse(json)
 
 	// Enable apps and give status
@@ -415,7 +415,7 @@ type RunExecResult = {
 }
 
 /**
- * Execute a command in the container
+ * Execute a command in the container and return stdout/stderr separately.
  */
 export async function runExec(
 	command: string | string[],
@@ -529,11 +529,10 @@ export async function runExec(
  */
 export async function runOcc(
 	command: string | string[],
-	{ container, env=[], verbose=false }: Partial<Omit<RunExecOptions, 'user'>> = {},
+	{ container, env=[], verbose=false, ...rest }: Partial<Omit<RunExecOptions, 'user'>> = {},
 ) {
 	const cmdArray = typeof command === 'string' ? [command] : command
-	const { stdout } = await runExec(['php', 'occ', ...cmdArray], { container, verbose, env })
-	return stdout
+	return runExec(['php', 'occ', ...cmdArray], { ...rest, container, verbose, env })
 }
 
 /**
@@ -550,11 +549,12 @@ export const setSystemConfig = function(
 /**
  * Get a Nextcloud system config value from the container.
  */
-export const getSystemConfig = function(
+export async function getSystemConfig(
 	key: string,
 	{ container }: { container?: Docker.Container } = {},
 ) {
-	return runOcc(['config:system:get', key], { container })
+	const { stdout } = await runOcc(['config:system:get', key], { container })
+	return stdout.trim()
 }
 
 
