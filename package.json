@@ -13,13 +13,13 @@
     "plugins",
     "library"
   ],
-  "homepage": "https://github.com/nextcloud/nextcloud-e2e-test-server",
+  "homepage": "https://github.com/nextcloud-libraries/nextcloud-e2e-test-server",
   "bugs": {
-    "url": "https://github.com/nextcloud/nextcloud-e2e-test-server/issues"
+    "url": "https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nextcloud/nextcloud-e2e-test-server.git"
+    "url": "git+https://github.com/nextcloud-libraries/nextcloud-e2e-test-server.git"
   },
   "license": "AGPL-3.0-or-later",
   "author": "John Molakvoæ <skjnldsv@protonmail.com>",
