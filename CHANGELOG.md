@@ -6,6 +6,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.5.0 - 2026-07-02
+### Breaking changes
+`runExec` and `runOcc` now return an object instead of the plain output string.
+The response object has the following format:
+```ts
+interface ExecResponse {
+  /** The stdout messages */
+  stdout: string
+  /** The stderr messages */
+  stderr: string
+  /** The exit code of the command */
+  exitCode: number
+}
+```
+
+By default both commands fail if the command exists with a non-zero exit code,
+this can be disabled with `failOnError: false` on the command options.
+
+### Fixed
+* fix!(docker): clean up exec output handling and remove app:list workaround \([\#985](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/985)\)
+* fix(playwright): make login method more robust \([\#1034](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1034)\)
+* fix(docker): allow to install all shipped apps in `configureNextcloud` \([\#1039](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1039)\)
+* fix(docker): add special handling for server usage \([\#1040](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1040)\)
+
+### Changed
+* ci: updated workflows
+* Updated dependencies
+  * Bump axios to 1.16.0
+  * Bump wait-on to 9.0.10
+  * Bump @nextcloud/paths to 3.1.0
+  * Bump fast-xml-parser to 5.9.3
+  * Bump dockerode to 5.0.1
 
 ## v0.4.0 - 2025-10-21
 ### Notes
@@ -27,8 +59,8 @@ Instead use role based selectors like `cy.findByRole` from `@testing-library/cyp
 ### Changed
 - chore: adjust node versions \([#869](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/869)\)
 - chore: simplify build process by use vite \([#870](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/870)\)
-- ci: update reuse.yml workflow from template \([#862](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/862)\)
-- ci: update npm-publish.yml workflow from template \([#863](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/863)\)
+- ci: update reuse.yml workflow \([#862](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/862)\)
+- ci: update npm-publish.yml workflow \([#863](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/863)\)
 - chore(deps): Bump fast-xml-parser to 5.2.5
 - chore(deps): Bump pbkdf2 to 3.1.3
 - chore(deps): Bump tmp to 0.2.4
@@ -50,7 +82,7 @@ Instead use role based selectors like `cy.findByRole` from `@testing-library/cyp
 - feat: User.createRandom(), use User in docker addUser
 - feat(e2e-test-server): Rename package and move to separate branch
 - feat(playwright): `createRandomUser()` and `login()`
-- feat!: Export docker functions from main entry
+- feat!: Export docker functions entry
 
 ### Changed
 - test: docker tooling with playwright (f60d530)
