@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-export * from './getNc'
-export * from './sessions'
-export * from './users'
-export * from './state'
-export * from './docker'
-export * from './occ'
+export * from './getNc.ts'
+export * from './sessions.ts'
+export * from './users.ts'
+export * from './state.ts'
+export * from './docker.ts'
+export * from './occ.ts'

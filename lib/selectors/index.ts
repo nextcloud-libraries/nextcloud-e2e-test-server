@@ -14,4 +14,4 @@ export interface Selector {
 	(args?: object): Cypress.Chainable<JQuery>
 }
 
-export * from './uploadPicker'
+export * from './uploadPicker.ts'

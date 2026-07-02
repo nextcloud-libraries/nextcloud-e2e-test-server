@@ -14,5 +14,5 @@
 // ***********************************************
 //
 
-import { addCommands } from '../../dist/cypress'
+import { addCommands } from '../../lib/cypress.ts'
 addCommands()

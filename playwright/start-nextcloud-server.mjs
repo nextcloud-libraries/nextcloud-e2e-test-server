@@ -33,7 +33,7 @@ function getBranch() {
 // Start the Nextcloud docker container
 await start()
 // Listen for process to exit (tests done) and shut down the docker container
-process.on('beforeExit', (code) => {
+process.on('beforeExit', () => {
 	stopNextcloud()
 })
 
