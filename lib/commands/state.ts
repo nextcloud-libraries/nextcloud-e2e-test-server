@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { runCommand } from "./docker"
+import { runCommand } from './docker.ts'
 
+/**
+ * Save the current state of the Nextcloud instance by creating a snapshot of the data directory.
+ */
 export function saveState(): Cypress.Chainable<string> {
 	const snapshot = Math.random().toString(36).substring(7)
 
@@ -16,8 +19,13 @@ export function saveState(): Cypress.Chainable<string> {
 	return cy.wrap(snapshot)
 }
 
+/**
+ * Restore the state of the Nextcloud instance from a previously created snapshot.
+ *
+ * @param snapshot - The name of the snapshot to restore. If not provided, the default snapshot 'init' will be used.
+ */
 export function restoreState(snapshot: string = 'init') {
-	runCommand(`rm -vfr ./data/*`)
+	runCommand('rm -vfr ./data/*')
 	runCommand(`tar -xf '/var/www/html/data-${snapshot}.tar'`)
 
 	// Any user sessions created between saveState() and restoreState()

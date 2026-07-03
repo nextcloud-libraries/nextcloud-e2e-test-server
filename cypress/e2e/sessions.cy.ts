@@ -1,8 +1,9 @@
-/**
+/*
  * SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { User } from '../../dist/cypress'
+
+import { User } from '../../lib/cypress.ts'
 
 describe('Login and logout', function() {
 	it('Login and see the default files list', function() {
@@ -15,7 +16,7 @@ describe('Login and logout', function() {
 		cy.visit('/apps/files')
 		cy.url().should('include', '/apps/files')
 
-		cy.window().then(window => {
+		cy.window().then((window) => {
 			expect((window as any).OC?.currentUser).to.eq(user.userId)
 		})
 	})
@@ -26,7 +27,7 @@ describe('Login and logout', function() {
 		cy.visit('/apps/files')
 		cy.url().should('include', '/apps/files')
 
-		cy.window().then(window => {
+		cy.window().then((window) => {
 			expect((window as any).OC?.currentUser).to.eq('test1')
 		})
 
@@ -43,7 +44,7 @@ describe('Login and logout', function() {
 			cy.visit('/apps/files')
 			cy.url().should('include', '/apps/files')
 
-			cy.window().then(window => {
+			cy.window().then((window) => {
 				expect((window as any).OC?.currentUser).to.eq(user.userId)
 			})
 		})

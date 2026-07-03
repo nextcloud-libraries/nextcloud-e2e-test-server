@@ -6,18 +6,22 @@
 import { startNextcloud, stopNextcloud } from '@nextcloud/e2e-test-server/docker'
 import { readFileSync } from 'fs'
 
-const start = async () => {
+/**
+ *
+ */
+async function start() {
 	return await startNextcloud(getBranch(), true, {
 		exposePort: 8089,
 	})
 }
 
-const getBranch = () => {
+/**
+ *
+ */
+function getBranch() {
 	try {
 		const appinfo = readFileSync('appinfo/info.xml').toString()
-		const maxVersion = appinfo.match(
-			/<nextcloud min-version="\d+" max-version="(\d\d+)" \/>/,
-		)?.[1]
+		const maxVersion = appinfo.match(/<nextcloud min-version="\d+" max-version="(\d\d+)" \/>/)?.[1]
 		return maxVersion ? `stable${maxVersion}` : undefined
 	} catch (err) {
 		if (err.code === 'ENOENT') {
@@ -29,7 +33,7 @@ const getBranch = () => {
 // Start the Nextcloud docker container
 await start()
 // Listen for process to exit (tests done) and shut down the docker container
-process.on('beforeExit', (code) => {
+process.on('beforeExit', () => {
 	stopNextcloud()
 })
 

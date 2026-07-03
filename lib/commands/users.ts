@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { User } from "../User"
+import { User } from '../User.ts'
 
 export const randHash = () => Math.random().toString(36).replace(/[^a-z]+/g, '').slice(0, 10)
 
 /**
  * Create a random user
  */
-export const createRandomUser = function(): Cypress.Chainable<User> {
+export function createRandomUser(): Cypress.Chainable<User> {
 	const user = new User(randHash())
 	cy.log(`Generated user ${user.userId}`)
 
@@ -22,8 +22,10 @@ export const createRandomUser = function(): Cypress.Chainable<User> {
  * Create a user
  *
  * **Warning**: Using this function will reset the previous session
+ *
+ * @param user
  */
-export const createUser = function(user: User): Cypress.Chainable<Cypress.Response<any>> {
+export function createUser(user: User): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users?format=json`.replace('index.php/', '')
 
 	cy.clearCookies()
@@ -32,11 +34,11 @@ export const createUser = function(user: User): Cypress.Chainable<Cypress.Respon
 		url,
 		body: {
 			userid: user.userId,
-			password: user.password
+			password: user.password,
 		},
 		auth: {
 			user: 'admin',
-			pass: 'admin'
+			pass: 'admin',
 		},
 		headers: {
 			'OCS-ApiRequest': 'true',
@@ -58,9 +60,11 @@ export const createUser = function(user: User): Cypress.Chainable<Cypress.Respon
  * Query list of users on the Nextcloud instance
  *
  * **Warning**: Using this function will reset the previous session
- * @returns list of user IDs
+ *
+ * @param details
+ * @return list of user IDs
  */
-export function listUsers<b extends boolean>(details?: b): Cypress.Chainable<b extends true ? Record<string, string>[] : string[]>;
+export function listUsers<b extends boolean>(details?: b): Cypress.Chainable<b extends true ? Record<string, string>[] : string[]>
 export function listUsers(details = false): Cypress.Chainable<Record<string, string>[] | string[]> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users${details ? '/details' : ''}`.replace('index.php/', '')
 
@@ -70,24 +74,24 @@ export function listUsers(details = false): Cypress.Chainable<Record<string, str
 		url,
 		auth: {
 			user: 'admin',
-			pass: 'admin'
+			pass: 'admin',
 		},
 		headers: {
 			'OCS-ApiRequest': 'true',
 		},
 	}).then((response) => {
-		const parser = new DOMParser();
-		const xmlDoc = parser.parseFromString(response.body, "text/xml");
+		const parser = new DOMParser()
+		const xmlDoc = parser.parseFromString(response.body, 'text/xml')
 
 		if (!details) {
-			const users = Array.from(xmlDoc.querySelectorAll('users element')).map(v => v.textContent)
-			return users.filter(v => typeof v === 'string') as string[]
+			const users = Array.from(xmlDoc.querySelectorAll('users element')).map((v) => v.textContent)
+			return users.filter((v) => typeof v === 'string') as string[]
 		} else {
-			const list = Array.from(xmlDoc.querySelectorAll('users > *')).map(v => {
+			const list = Array.from(xmlDoc.querySelectorAll('users > *')).map((v) => {
 				//  We only handle simple text properties for the moment
-				const properties = Array.from(v.childNodes).filter(c => c.childNodes.length <= 1)
+				const properties = Array.from(v.childNodes).filter((c) => c.childNodes.length <= 1)
 
-				return Object.fromEntries(properties.map(p => [p.nodeName, p.textContent || '']))
+				return Object.fromEntries(properties.map((p) => [p.nodeName, p.textContent || '']))
 			})
 			return list as Record<string, string>[]
 		}
@@ -98,9 +102,10 @@ export function listUsers(details = false): Cypress.Chainable<Record<string, str
  * Delete an user on the Nextcloud instance
  *
  * **Warning**: Using this function will reset the previous session
+ *
  * @param user User to delete
  */
-export const deleteUser = function(user: User): Cypress.Chainable<Cypress.Response<any>> {
+export function deleteUser(user: User): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users/${user.userId}`.replace('index.php/', '')
 
 	cy.clearCookies()
@@ -110,7 +115,7 @@ export const deleteUser = function(user: User): Cypress.Chainable<Cypress.Respon
 		form: true,
 		auth: {
 			user: 'admin',
-			pass: 'admin'
+			pass: 'admin',
 		},
 		headers: {
 			'OCS-ApiRequest': 'true',
@@ -131,7 +136,7 @@ export const deleteUser = function(user: User): Cypress.Chainable<Cypress.Respon
  * @param key Attribute name
  * @param value New attribute value
  */
-export const modifyUser = function(user: User, key: string, value: any): Cypress.Chainable<Cypress.Response<any>> {
+export function modifyUser(user: User, key: string, value: unknown): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users/${user.userId}`.replace('index.php/', '')
 
 	return cy.request({
@@ -140,11 +145,11 @@ export const modifyUser = function(user: User, key: string, value: any): Cypress
 		form: true,
 		body: {
 			key,
-			value
+			value,
 		},
 		auth: {
 			user: user.userId,
-			password: user.password
+			password: user.password,
 		},
 		headers: {
 			'OCS-ApiRequest': 'true',
@@ -161,7 +166,7 @@ export const modifyUser = function(user: User, key: string, value: any): Cypress
  *
  * @param user User to change
  */
-export const getUserData = function(user: User): Cypress.Chainable<Cypress.Response<any>> {
+export function getUserData(user: User): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users/${user.userId}`.replace('index.php/', '')
 
 	return cy.request({
@@ -169,7 +174,7 @@ export const getUserData = function(user: User): Cypress.Chainable<Cypress.Respo
 		url,
 		auth: {
 			user: user.userId,
-			pass: user.password
+			pass: user.password,
 		},
 		headers: {
 			'OCS-ApiRequest': 'true',
@@ -184,10 +189,10 @@ export const getUserData = function(user: User): Cypress.Chainable<Cypress.Respo
 /**
  * Enable or disable a user
  *
- * @param {User} user the user to dis- / enable
- * @param {boolean} enable True if the user should be enable, false to disable
+ * @param user the user to dis- / enable
+ * @param enable True if the user should be enable, false to disable
  */
-export const enableUser = function(user: User, enable = true): Cypress.Chainable<Cypress.Response<any>> {
+export function enableUser(user: User, enable = true): Cypress.Chainable<Cypress.Response<unknown>> {
 	const url = `${Cypress.config('baseUrl')}/ocs/v2.php/cloud/users/${user.userId}/${enable ? 'enable' : 'disable'}`.replace('index.php/', '')
 
 	return cy.request({

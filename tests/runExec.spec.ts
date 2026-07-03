@@ -7,7 +7,6 @@ import type { Container } from 'dockerode'
 
 import assert from 'node:assert/strict'
 import { after, before, describe, test } from 'node:test'
-
 import { getContainer, runExec, startNextcloud, stopNextcloud, waitOnNextcloud } from '../lib/docker.ts'
 
 describe('Docker: runExec', async () => {
