@@ -12,7 +12,13 @@ export function saveState(): Cypress.Chainable<string> {
 	const snapshot = Math.random().toString(36).substring(7)
 
 	runCommand(`rm /var/www/html/data-${snapshot}.tar`, { failOnNonZeroExit: false })
-	runCommand(`tar cf /var/www/html/data-${snapshot}.tar ./data`)
+	// The instance keeps writing into ./data while we archive it (e.g. the
+	// nextcloud.log, caches, session files), so a file can change mid-read and
+	// GNU tar exits 1 with "file changed as we read it". That is harmless for a
+	// test-state snapshot: silence the warning and treat exit 1 (benign,
+	// "some files differ") as success while still failing on a real error
+	// (exit 2, fatal).
+	runCommand(`tar --warning=no-file-changed -cf /var/www/html/data-${snapshot}.tar ./data || [ $? -eq 1 ]`)
 
 	cy.log(`Created snapshot ${snapshot}`)
 
