@@ -19,13 +19,13 @@ describe('Docker: Pre-installation of apps', async () => {
 	await test('Additional apps: Default mapping works', async () => {
 		const container = getContainer()
 		// this must not throw
-		await runExec(['file', '-f', 'apps/viewer/appinfo/info.xml'], { container, failOnError: true })
+		await runExec(['file', '-f', 'apps-writable/viewer/appinfo/info.xml'], { container, failOnError: true })
 	})
 
 	await test('Additional apps: Mapping "main" branches', async () => {
 		const container = getContainer()
 		// this must not throw
-		await runExec(['file', '-f', 'apps/text/appinfo/info.xml'], { container })
+		await runExec(['file', '-f', 'apps-writable/text/appinfo/info.xml'], { container })
 		const { enabled } = await getAppsList()
 		expect.equal('text' in enabled, true, 'Text app should be enabled')
 	})
@@ -33,7 +33,7 @@ describe('Docker: Pre-installation of apps', async () => {
 	await test('Additional apps: fetching from appstore works', async () => {
 		const container = getContainer()
 		// this must not throw
-		await runExec(['file', '-f', 'apps/forms/appinfo/info.xml'], { container })
+		await runExec(['file', '-f', 'apps-writable/forms/appinfo/info.xml'], { container })
 		const { enabled } = await getAppsList()
 		expect.equal('forms' in enabled, true, 'Forms app should be enabled')
 	})
