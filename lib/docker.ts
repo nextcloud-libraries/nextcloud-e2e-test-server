@@ -17,7 +17,7 @@ import { User } from './User.ts'
 
 const SERVER_IMAGE = 'ghcr.io/nextcloud/continuous-integration-shallow-server'
 
-export const docker = new Docker()
+export const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET })
 
 // Store the container name, different names are used to prevent conflicts when testing multiple apps locally
 let _containerName: string | null = null
@@ -418,7 +418,7 @@ export async function waitOnNextcloud(ip: string) {
 	console.log('└─ Done')
 }
 
-interface RunExecOptions {
+export interface RunExecOptions {
 	/**
 	 * The container to run the command in. If not provided, the current container will be used.
 	 */
@@ -441,7 +441,7 @@ interface RunExecOptions {
 	verbose: boolean
 }
 
-type RunExecResult = {
+export type RunExecResult = {
 	stdout: string
 	stderr: string
 	exitCode: number

@@ -9,7 +9,7 @@ import { configureNextcloud, docker, getContainer, runExec, runOcc, startNextclo
 
 describe('Docker: Pre-installation of apps', async () => {
 	before(async () => {
-		const ip = await startNextcloud('master', false, { forceRecreate: true })
+		const ip = await startNextcloud('master', false, { forceRecreate: true, exposePort: 8088 })
 		await waitOnNextcloud(ip)
 		await configureNextcloud(['viewer', 'text', 'forms'])
 	})

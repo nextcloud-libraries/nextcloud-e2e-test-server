@@ -13,7 +13,7 @@ describe('Docker: runExec', async () => {
 	let container: Container
 
 	before(async () => {
-		const ip = await startNextcloud('master', false)
+		const ip = await startNextcloud('master', false, { exposePort: 8087 })
 		await waitOnNextcloud(ip)
 		container = getContainer()
 	})

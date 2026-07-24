@@ -3,16 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { basename } from '@nextcloud/paths'
+import type { RunExecOptions, RunExecResult } from '../docker.ts'
 
-/**
- *
- */
-function getContainerName(): Cypress.Chainable<string> {
-	return cy.exec('pwd').then(({ stdout }) => {
-		const name = basename(stdout).replace(' ', '')
-		return cy.wrap(`nextcloud-e2e-test-server_${name}`)
-	})
+const defaultOptions = {
+	failOnError: false,
+	user: 'www-data',
+	verbose: false,
 }
 
 /**
@@ -20,14 +16,16 @@ function getContainerName(): Cypress.Chainable<string> {
  * @param command
  * @param options
  */
-export function runCommand(command: string, options?: Partial<Cypress.ExecOptions>): Cypress.Chainable<Cypress.Exec> {
+export function runCommand(command: string[] | string, options?: Partial<RunExecOptions>): Cypress.Chainable<RunExecResult> {
 	const env = Object.entries(options?.env ?? {})
-		.map(([name, value]) => `-e '${name}=${value}'`)
-		.join(' ')
+		.map(([name, value]) => `${name}=${value}`)
 
-	return getContainerName()
-		.then((containerName) => {
-			// Wrapping command inside bash -c "..." to allow using '*'.
-			return cy.exec(`docker exec --user www-data --workdir /var/www/html ${env} ${containerName} bash -c "${command}"`, options)
-		})
+	return cy.task('runExec', {
+		command,
+		options: {
+			...defaultOptions,
+			...options,
+			env,
+		},
+	})
 }
