@@ -13,6 +13,6 @@ import { test as setup } from '@playwright/test'
  * as that only checks for the URL to be accessible which happens already before everything is configured.
  */
 setup('Configure Nextcloud', async () => {
-	const appsToInstall = []
+	const appsToInstall: string[] = []
 	await configureNextcloud(appsToInstall)
 })

@@ -13,3 +13,4 @@
 - Max <max@nextcloud.com>
 - max-nextcloud <max@nextcloud.com>
 - Pytal <24800714+Pytal@users.noreply.github.com>
+- Tobias Knöppler <tobias@knoeppler.org>

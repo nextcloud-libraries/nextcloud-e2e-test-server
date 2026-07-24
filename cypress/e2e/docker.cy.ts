@@ -11,7 +11,7 @@ describe('Run command', function() {
 	})
 
 	it('hands on the env', function() {
-		cy.runCommand('env', { env: { DATA: 'Hello' } })
+		cy.runCommand('env', { env: ['DATA=Hello'] })
 			.its('stdout')
 			.should('contain', 'DATA')
 			.should('contain', 'Hello')
