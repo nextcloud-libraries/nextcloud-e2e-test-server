@@ -17,7 +17,7 @@ import { User } from './User.ts'
 
 const SERVER_IMAGE = 'ghcr.io/nextcloud/continuous-integration-shallow-server'
 
-export const docker = new Docker()
+export const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET })
 
 // Store the container name, different names are used to prevent conflicts when testing multiple apps locally
 let _containerName: string | null = null
@@ -164,12 +164,6 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 			Image: SERVER_IMAGE,
 			name: getContainerName(),
 			Env: [`BRANCH=${branch}`, 'APCU=1'],
-			Volumes: {
-				apps_writable: {
-					Mountpoint: '/var/www/html/apps-writable',
-					Readonly: false,
-				},
-			},
 			HostConfig: {
 				Binds: mounts.length > 0 ? mounts : undefined,
 				PortBindings,
@@ -179,6 +173,11 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 					Target: '/var/www/html/data',
 					Source: '',
 					Type: 'tmpfs',
+					ReadOnly: false,
+				}, {
+					Target: '/var/www/html/apps-writable',
+					Source: 'apps_writable',
+					Type: 'volume',
 					ReadOnly: false,
 				}],
 			},
@@ -268,7 +267,7 @@ export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: str
 
 	console.log('├─ Using "apps-writable" folder for mounted apps')
 	await runExec(['mkdir', '-p', '/var/www/html/apps-writable'], { container })
-	await runExec(['chown', 'www-data:www-data', '/var/www/html/apps-writable'], { container })
+	await runExec(['chown', 'www-data:www-data', '/var/www/html/apps-writable'], { container, user: 'root' })
 	const appsConfig = `<?php
 	$CONFIG = [
 		'apps_paths' => [
@@ -364,7 +363,7 @@ export async function stopNextcloud() {
 	try {
 		const container = getContainer()
 		console.log('Stopping Nextcloud container…')
-		container.remove({ force: true })
+		await container.remove({ force: true })
 		console.log('└─ Nextcloud container removed 🥀')
 	} catch (err) {
 		console.log(err)
@@ -419,7 +418,7 @@ export async function waitOnNextcloud(ip: string) {
 	console.log('└─ Done')
 }
 
-interface RunExecOptions {
+export interface RunExecOptions {
 	/**
 	 * The container to run the command in. If not provided, the current container will be used.
 	 */
@@ -442,7 +441,7 @@ interface RunExecOptions {
 	verbose: boolean
 }
 
-type RunExecResult = {
+export type RunExecResult = {
 	stdout: string
 	stderr: string
 	exitCode: number

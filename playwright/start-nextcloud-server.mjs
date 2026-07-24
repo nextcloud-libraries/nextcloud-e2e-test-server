@@ -5,6 +5,7 @@
 
 import { startNextcloud, stopNextcloud } from '@nextcloud/e2e-test-server/docker'
 import { readFileSync } from 'fs'
+import { docker } from '../lib'
 
 /**
  *
@@ -33,8 +34,9 @@ function getBranch() {
 // Start the Nextcloud docker container
 await start()
 // Listen for process to exit (tests done) and shut down the docker container
-process.on('beforeExit', () => {
-	stopNextcloud()
+process.on('beforeExit', async () => {
+	await stopNextcloud()
+	await docker.getVolume('apps_writable').remove()
 })
 
 // Idle to wait for shutdown

@@ -7,18 +7,21 @@ import type { Container } from 'dockerode'
 
 import assert from 'node:assert/strict'
 import { after, before, describe, test } from 'node:test'
-import { getContainer, runExec, startNextcloud, stopNextcloud, waitOnNextcloud } from '../lib/docker.ts'
+import { docker, getContainer, runExec, startNextcloud, stopNextcloud, waitOnNextcloud } from '../lib/docker.ts'
 
 describe('Docker: runExec', async () => {
 	let container: Container
 
 	before(async () => {
-		const ip = await startNextcloud('master', false)
+		const ip = await startNextcloud('master', false, { exposePort: 8087 })
 		await waitOnNextcloud(ip)
 		container = getContainer()
 	})
 
-	after(async () => await stopNextcloud())
+	after(async () => {
+		await stopNextcloud()
+		await docker.getVolume('apps_writable').remove()
+	})
 
 	await test('captures stdout of a command', async () => {
 		const { stdout, stderr, exitCode } = await runExec(['echo', 'hello world'], { container })
