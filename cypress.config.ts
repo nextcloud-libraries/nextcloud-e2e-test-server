@@ -9,7 +9,7 @@ process.env.npm_package_name = 'nextcloud-e2e-test-server'
 
 import { defineConfig } from 'cypress'
 import vitePreprocessor from 'cypress-vite'
-import { configureNextcloud, createSnapshot, setupUsers, startNextcloud, stopNextcloud, waitOnNextcloud } from './lib/docker.ts'
+import { configureNextcloud, createSnapshot, docker setupUsers, startNextcloud, stopNextcloud, waitOnNextcloud } from './lib/docker.ts'
 
 export default defineConfig({
 	projectId: 'h2z7r3',
@@ -28,8 +28,9 @@ export default defineConfig({
 			on('file:preprocessor', vitePreprocessor({ configFile: false }))
 
 			// Remove container after run
-			on('after:run', () => {
-				stopNextcloud()
+			on('after:run', async () => {
+				await stopNextcloud()
+				await docker.getVolume('apps_writable').remove()
 			})
 
 			// Before the browser launches

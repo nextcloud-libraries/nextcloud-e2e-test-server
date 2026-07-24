@@ -164,12 +164,6 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 			Image: SERVER_IMAGE,
 			name: getContainerName(),
 			Env: [`BRANCH=${branch}`, 'APCU=1'],
-			Volumes: {
-				apps_writable: {
-					Mountpoint: '/var/www/html/apps-writable',
-					Readonly: false,
-				},
-			},
 			HostConfig: {
 				Binds: mounts.length > 0 ? mounts : undefined,
 				PortBindings,
@@ -179,6 +173,11 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 					Target: '/var/www/html/data',
 					Source: '',
 					Type: 'tmpfs',
+					ReadOnly: false,
+				}, {
+					Target: '/var/www/html/apps-writable',
+					Source: 'apps_writable',
+					Type: 'volume',
 					ReadOnly: false,
 				}],
 			},
@@ -268,7 +267,7 @@ export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: str
 
 	console.log('├─ Using "apps-writable" folder for mounted apps')
 	await runExec(['mkdir', '-p', '/var/www/html/apps-writable'], { container })
-	await runExec(['chown', 'www-data:www-data', '/var/www/html/apps-writable'], { container })
+	await runExec(['chown', 'www-data:www-data', '/var/www/html/apps-writable'], { container, user: 'root' })
 	const appsConfig = `<?php
 	$CONFIG = [
 		'apps_paths' => [
@@ -364,7 +363,7 @@ export async function stopNextcloud() {
 	try {
 		const container = getContainer()
 		console.log('Stopping Nextcloud container…')
-		container.remove({ force: true })
+		await container.remove({ force: true })
 		console.log('└─ Nextcloud container removed 🥀')
 	} catch (err) {
 		console.log(err)
