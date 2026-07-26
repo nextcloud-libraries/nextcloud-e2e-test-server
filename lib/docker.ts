@@ -261,10 +261,6 @@ export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: str
 	}
 	console.log('│  └─ OK !')
 
-	// Build app list
-	const { stdout: json } = await runOcc(['app:list', '--output', 'json'], { container })
-	const applist = JSON.parse(json)
-
 	console.log('├─ Using "apps-writable" folder for mounted apps')
 	await runExec(['mkdir', '-p', '/var/www/html/apps-writable'], { container })
 	await runExec(['chown', 'www-data:www-data', '/var/www/html/apps-writable'], { container, user: 'root' })
@@ -287,6 +283,10 @@ export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: str
 	stream.entry({ name: 'apps.config.php' }, appsConfig)
 	stream.finalize()
 	await container.putArchive(stream, { path: '/var/www/html/config' })
+
+	// Build app list, only now that "apps-writable" is a known apps path so that mounted apps show up
+	const { stdout: json } = await runOcc(['app:list', '--output', 'json'], { container })
+	const applist = JSON.parse(json)
 
 	// Enable apps and give status
 	for (const app of apps) {
