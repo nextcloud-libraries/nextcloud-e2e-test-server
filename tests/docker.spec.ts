@@ -5,16 +5,19 @@
 
 import * as expect from 'node:assert'
 import { after, before, describe, test } from 'node:test'
-import { configureNextcloud, getContainer, runExec, runOcc, startNextcloud, stopNextcloud, waitOnNextcloud } from '../lib/docker.ts'
+import { configureNextcloud, docker, getContainer, runExec, runOcc, startNextcloud, stopNextcloud, waitOnNextcloud } from '../lib/docker.ts'
 
 describe('Docker: Pre-installation of apps', async () => {
 	before(async () => {
-		const ip = await startNextcloud('master', false, { forceRecreate: true })
+		const ip = await startNextcloud('master', false, { forceRecreate: true, exposePort: 8088 })
 		await waitOnNextcloud(ip)
 		await configureNextcloud(['viewer', 'text', 'forms'])
 	})
 
-	after(async () => await stopNextcloud())
+	after(async () => {
+		await stopNextcloud()
+		await docker.getVolume('apps_writable').remove()
+	})
 
 	await test('Additional apps: Default mapping works', async () => {
 		const container = getContainer()

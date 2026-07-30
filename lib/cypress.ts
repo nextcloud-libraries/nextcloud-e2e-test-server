@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import type { RunExecOptions, RunExecResult } from './docker.ts'
 import type { Selector } from './selectors/index.ts'
 
 import { getNc, restoreState, runCommand, runOccCommand, saveState } from './commands/index.ts'
@@ -109,12 +110,12 @@ declare global {
 			 * Run a command in the docker container
 			 *
 			 */
-			runCommand(command: string, options?: Partial<Cypress.ExecOptions>): Cypress.Chainable<Cypress.Exec>
+			runCommand(command: string, options?: Partial<RunExecOptions>): Cypress.Chainable<RunExecResult>
 
 			/**
 			 * Run an occ command
 			 */
-			runOccCommand(command: string, options?: Partial<Cypress.ExecOptions>): Cypress.Chainable<Cypress.Exec>
+			runOccCommand(command: string, options?: Partial<RunExecOptions>): Cypress.Chainable<RunExecResult>
 		}
 	}
 }
