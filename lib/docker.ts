@@ -17,6 +17,12 @@ import { User } from './User.ts'
 
 const SERVER_IMAGE = 'ghcr.io/nextcloud/continuous-integration-shallow-server'
 
+// The server image ships PHP but no Composer, so it is downloaded on demand
+const COMPOSER_VERSION = process.env.NEXTCLOUD_E2E_COMPOSER_VERSION || 'latest-stable'
+const COMPOSER_PHAR = '/tmp/composer.phar'
+/** `COMPOSER_HOME` used inside the server container, must be writable by `www-data` */
+const COMPOSER_HOME = '/tmp/composer-home'
+
 export const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET ?? '/var/run/docker.sock' })
 
 // Store the container name, different names are used to prevent conflicts when testing multiple apps locally
@@ -230,6 +236,9 @@ function pullImage() {
 /**
  * Configure Nextcloud
  *
+ * Shipped apps that are missing from the server image are cloned and their Composer dependencies
+ * are installed. Set `NEXTCLOUD_E2E_COMPOSER_VERSION` to pin the Composer version used for that.
+ *
  * @param apps List of default apps to install (default is ['viewer'])
  * @param vendoredBranch The branch used for vendored apps, should match server (defaults to latest branch used for `startNextcloud` or fallsback to `master`)
  * @param container Optional server container to use (defaults to current container)
@@ -304,6 +313,7 @@ export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: str
 					['git', 'clone', '--depth=1', ...branchOption, `https://github.com/nextcloud/${encodeURIComponent(app)}.git`, `apps-writable/${app}`],
 					{ container, verbose: true },
 				)
+				await installComposerDependencies(app, container)
 				await runOcc(['app:enable', '--force', app], { container, verbose: true })
 			} else {
 				// try appstore
@@ -312,6 +322,58 @@ export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: str
 		}
 	}
 	console.log('└─ Nextcloud is now ready to use 🎉')
+}
+
+/**
+ * Check whether a path exists inside the container
+ *
+ * @param path Absolute path to check
+ * @param container The server container to use
+ */
+async function pathExists(path: string, container: Container): Promise<boolean> {
+	const { exitCode } = await runExec(['test', '-e', path], { container, failOnError: false })
+	return exitCode === 0
+}
+
+/**
+ * Install the Composer dependencies of a cloned app
+ *
+ * A bare `git clone` is only usable as long as the app commits its dependencies. Since Nextcloud 34
+ * `notifications` does not, and `OC_App::registerAutoloading()` then fatals on the missing
+ * `vendor/autoload.php`. Scripts are run on purpose, apps like that one only assemble the prefixed
+ * copies of their dependencies (`lib/Vendor`) in `post-install-cmd`.
+ *
+ * @param app The app id, cloned to `apps-writable/<app>`
+ * @param container The server container to use
+ */
+async function installComposerDependencies(app: string, container: Container) {
+	const appPath = `/var/www/html/apps-writable/${app}`
+	if (!await pathExists(`${appPath}/composer.json`, container)) {
+		return
+	}
+
+	await ensureComposer(container)
+	console.log(`│  ├─ Running 'composer install' for ${app}…`)
+	await runExec(
+		['php', COMPOSER_PHAR, 'install', '--no-dev', '--no-interaction', '--no-progress', '--no-ansi'],
+		{ container, workingDir: appPath, env: [`COMPOSER_HOME=${COMPOSER_HOME}`] },
+	)
+	console.log('│  └─ Done')
+}
+
+/**
+ * Download the Composer binary into the container, unless it is already there
+ *
+ * @param container The server container to use
+ */
+async function ensureComposer(container: Container) {
+	if (await pathExists(COMPOSER_PHAR, container)) {
+		return
+	}
+
+	console.log(`│  ├─ Downloading Composer ${COMPOSER_VERSION} into the container…`)
+	const url = `https://getcomposer.org/download/${COMPOSER_VERSION}/composer.phar`
+	await runExec(['curl', '--silent', '--show-error', '--location', '--fail', '--output', COMPOSER_PHAR, url], { container })
 }
 
 /**
@@ -439,6 +501,10 @@ export interface RunExecOptions {
 	 * If true, the command's output will be printed to the console. Defaults to false.
 	 */
 	verbose: boolean
+	/**
+	 * Working directory to run the command in. Defaults to the Nextcloud root.
+	 */
+	workingDir: string
 }
 
 export type RunExecResult = {
@@ -457,10 +523,11 @@ export type RunExecResult = {
  * @param options.verbose - If true, the command's output will be printed to the console. Defaults to false.
  * @param options.env - Environment variables to set for the command. Defaults to an empty array.
  * @param options.failOnError - The command will throw an error if it exits with a non-zero exit code. Defaults to true.
+ * @param options.workingDir - Working directory to run the command in. Defaults to the Nextcloud root.
  */
 export async function runExec(
 	command: string | string[],
-	{ container, user = 'www-data', verbose = false, env = [], failOnError = true }: Partial<RunExecOptions> = {},
+	{ container, user = 'www-data', verbose = false, env = [], failOnError = true, workingDir }: Partial<RunExecOptions> = {},
 ): Promise<RunExecResult> {
 	container = container || getContainer()
 	const exec = await container.exec({
@@ -469,6 +536,7 @@ export async function runExec(
 		AttachStderr: true,
 		User: user,
 		Env: env,
+		WorkingDir: workingDir,
 	})
 
 	return new Promise<RunExecResult>((resolve, reject) => {
