@@ -11,7 +11,7 @@ describe('Docker: Pre-installation of apps', async () => {
 	before(async () => {
 		const ip = await startNextcloud('master', false, { forceRecreate: true, exposePort: 8088 })
 		await waitOnNextcloud(ip)
-		await configureNextcloud(['viewer', 'text', 'forms'])
+		await configureNextcloud(['viewer', 'text', 'forms', 'notifications'])
 	})
 
 	after(async () => {
@@ -39,6 +39,14 @@ describe('Docker: Pre-installation of apps', async () => {
 		await runExec(['file', '-f', 'apps-writable/forms/appinfo/info.xml'], { container })
 		const { enabled } = await getAppsList()
 		expect.equal('forms' in enabled, true, 'Forms app should be enabled')
+	})
+
+	await test('Additional apps: apps that do not commit their dependencies get them installed', async () => {
+		const container = getContainer()
+		// this must not throw
+		await runExec(['test', '-f', 'apps-writable/notifications/vendor/autoload.php'], { container })
+		const { enabled } = await getAppsList()
+		expect.equal('notifications' in enabled, true, 'Notifications app should be enabled')
 	})
 })
 
