@@ -6,6 +6,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.5.1 - 2026-08-04
+### Fixed
+* fix(docker): always provide `apps-writable` \([#1051](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1051)\)
+* fix: Avoid error when files are changed during tar \([#1047](\([#1047](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1047)\))\)
+* fix(podman): Ensure compatibility with Podman \([#1061](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1061)\)
+* fix(docker): install the composer dependencies of cloned shipped apps \([#1064](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1064)\)
+* fix(docker): list the apps after `apps-writable` is a known apps path \([#1063](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1063)\)
+
+### Changed
+* ci: update all workflow templates from organization template repository \([#963](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/963)\)
+* chore: add ESLint and fix issues detected \([#1042](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1042)\)
+* chore(deps): Bump `fast-xml-parser` to 5.10.1 \([#1052](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1052)\)
+* chore(deps): Bump `axios` to 1.18.1 \([#1054](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1054)\)
+* chore(deps): Bump `immutable` to 4.3.9 \([#1057](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1057)\)
+* chore(deps): Bump `wait-on`  to 9.1.0 \([#1060](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1060)\)
+
 ## v0.5.0 - 2026-07-02
 ### Breaking changes
 `runExec` and `runOcc` now return an object instead of the plain output string.
