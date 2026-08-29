@@ -5,12 +5,14 @@
 
 import type { Container } from 'dockerode'
 import type { Stream } from 'stream'
+import type { Extract, Pack } from 'tar-stream'
 
 import Docker from 'dockerode'
 import { XMLParser } from 'fast-xml-parser'
-import { existsSync, readFileSync } from 'fs'
-import { basename, join, resolve, sep } from 'path'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { basename, dirname, join, resolve, sep } from 'path'
 import { PassThrough } from 'stream'
+import { pipeline } from 'stream/promises'
 import tarStreamer from 'tar-stream'
 import waitOn from 'wait-on'
 import { User } from './User.ts'
@@ -22,6 +24,9 @@ const COMPOSER_VERSION = process.env.NEXTCLOUD_E2E_COMPOSER_VERSION || 'latest-s
 const COMPOSER_PHAR = '/tmp/composer.phar'
 /** `COMPOSER_HOME` used inside the server container, must be writable by `www-data` */
 const COMPOSER_HOME = '/tmp/composer-home'
+
+/** Path of the server log inside the container, it lives on the tmpfs mounted data directory */
+const NEXTCLOUD_LOG = '/var/www/html/data/nextcloud.log'
 
 export const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET ?? '/var/run/docker.sock' })
 
@@ -291,7 +296,7 @@ export async function configureNextcloud(apps = ['viewer'], vendoredBranch?: str
 	const stream = tarStreamer.pack()
 	stream.entry({ name: 'apps.config.php' }, appsConfig)
 	stream.finalize()
-	await container.putArchive(stream, { path: '/var/www/html/config' })
+	await container.putArchive(asNodeStream(stream), { path: '/var/www/html/config' })
 
 	// Build app list, only now that "apps-writable" is a known apps path so that mounted apps show up
 	const { stdout: json } = await runOcc(['app:list', '--output', 'json'], { container })
@@ -419,11 +424,84 @@ export async function restoreSnapshot(snapshot = 'init', container?: Container) 
 }
 
 /**
- * Force stop the testing container
+ * Read the server log (`data/nextcloud.log`) from the container.
+ *
+ * The data directory is a tmpfs and the container is removed after the run,
+ * so the log has to be fetched while the container still exists.
+ *
+ * @param container Optional server container to use (defaults to current container)
+ * @return The log contents, or an empty string if the server has not written a log
  */
-export async function stopNextcloud() {
+export async function getNextcloudLog(container?: Container): Promise<string> {
+	container = container ?? getContainer()
+
+	let archive: NodeJS.ReadableStream
+	try {
+		archive = await container.getArchive({ path: NEXTCLOUD_LOG })
+	} catch {
+		// No log written (yet), or the container is already gone
+		return ''
+	}
+
+	// `getArchive` always answers with a tar stream, containing the single log entry
+	const extract = tarStreamer.extract()
+	const chunks: Buffer[] = []
+	extract.on('entry', (_header, stream, next) => {
+		stream.on('data', (chunk) => chunks.push(chunk as Buffer))
+		stream.on('end', () => next())
+	})
+	await pipeline(archive, asNodeStream(extract))
+
+	return Buffer.concat(chunks).toString('utf8')
+}
+
+/**
+ * Save the server log (`data/nextcloud.log`) from the container to a local file.
+ *
+ * Must be called before {@link stopNextcloud}, the log is lost with the container.
+ *
+ * @param targetPath Local path to write the log to (default 'nextcloud.log' in the current directory)
+ * @param container Optional server container to use (defaults to current container)
+ * @return Whether a log was found and written
+ */
+export async function saveNextcloudLog(targetPath = 'nextcloud.log', container?: Container): Promise<boolean> {
+	const log = await getNextcloudLog(container)
+	if (log === '') {
+		console.log('└─ No server log found in the container')
+		return false
+	}
+
+	const target = resolve(targetPath)
+	mkdirSync(dirname(target), { recursive: true })
+	writeFileSync(target, log)
+	console.log(`└─ Server log saved to ${target} 📝`)
+	return true
+}
+
+interface StopOptions {
+	/**
+	 * Local path to save the server log (`data/nextcloud.log`) to before the container is removed.
+	 *
+	 * @default process.env.NEXTCLOUD_E2E_LOG_FILE (disabled if unset)
+	 */
+	saveLogTo?: string
+}
+
+/**
+ * Force stop the testing container
+ *
+ * @param options Optional parameters to configure the container removal
+ */
+export async function stopNextcloud(options: StopOptions = {}) {
 	try {
 		const container = getContainer()
+
+		const logTarget = options.saveLogTo ?? process.env.NEXTCLOUD_E2E_LOG_FILE
+		if (logTarget) {
+			console.log('\nSaving Nextcloud server log…')
+			await saveNextcloudLog(logTarget, container)
+		}
+
 		console.log('Stopping Nextcloud container…')
 		await container.remove({ force: true })
 		console.log('└─ Nextcloud container removed 🥀')
@@ -691,6 +769,24 @@ export function addUser(user: User, { container, env = [], verbose = false }: Pa
 		['user:add', user.userId, '--password-from-env'],
 		{ container, verbose, env: ['OC_PASS=' + user.password, ...env] },
 	)
+}
+
+/**
+ * Present a `tar-stream` stream as the Node.js stream its consumers expect.
+ *
+ * `tar-stream` is typed as the `streamx` streams it is built on. Those behave
+ * like Node.js streams at runtime, but are not structurally assignable to them, so both
+ * `dockerode` and `stream.pipeline` need the stream to be cast.
+ *
+ * @param stream The pack or extract stream to cast
+ */
+function asNodeStream(stream: Pack): NodeJS.ReadableStream
+function asNodeStream(stream: Extract): NodeJS.WritableStream
+/**
+ * @param stream The pack or extract stream to cast
+ */
+function asNodeStream(stream: Pack | Extract) {
+	return stream as unknown as NodeJS.ReadableStream & NodeJS.WritableStream
 }
 
 /**

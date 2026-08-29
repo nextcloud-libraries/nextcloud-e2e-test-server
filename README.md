@@ -77,6 +77,29 @@ export default defineConfig({
 })
 ```
 
+## Getting the server log
+
+The server's `data` directory is mounted as a tmpfs and the container is removed after the run,
+so `data/nextcloud.log` is gone once the tests have finished.
+To keep it, save it while the container still exists — either by passing `saveLogTo` to `stopNextcloud`,
+or by setting the `NEXTCLOUD_E2E_LOG_FILE` environment variable (both take a path on your machine, relative paths are resolved from the current working directory):
+
+```js
+import { stopNextcloud } from '@nextcloud/e2e-test-server'
+
+// Writes `data/nextcloud.log` to `cypress/logs/nextcloud.log`, then removes the container
+await stopNextcloud({ saveLogTo: 'cypress/logs/nextcloud.log' })
+```
+
+If you need the log during a run — e.g. to attach it to a failing test — use `getNextcloudLog()`,
+which resolves with the log contents, or `saveNextcloudLog(path)` to write it out.
+
+```js
+import { getNextcloudLog } from '@nextcloud/e2e-test-server'
+
+const log = await getNextcloudLog()
+```
+
 ## Cypress commands
 
 You can import individual commands or all at once

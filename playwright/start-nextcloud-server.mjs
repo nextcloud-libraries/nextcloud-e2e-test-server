@@ -34,7 +34,7 @@ function getBranch() {
 await start()
 // Listen for process to exit (tests done) and shut down the docker container
 process.on('beforeExit', async () => {
-	await stopNextcloud()
+	await stopNextcloud({ saveLogTo: 'playwright-report/nextcloud.log' })
 	await docker.getVolume('apps_writable').remove()
 })
 

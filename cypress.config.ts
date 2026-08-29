@@ -40,7 +40,8 @@ export default defineConfig({
 
 			// Remove container after run
 			on('after:run', async () => {
-				await stopNextcloud()
+				// The data directory is a tmpfs, so grab the server log before the container goes away
+				await stopNextcloud({ saveLogTo: 'cypress/logs/nextcloud.log' })
 				await docker.getVolume('apps_writable').remove()
 			})
 
