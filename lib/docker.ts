@@ -19,6 +19,9 @@ import { User } from './User.ts'
 
 const SERVER_IMAGE = 'ghcr.io/nextcloud/continuous-integration-shallow-server'
 
+/** Named volume mounted at `/var/www/html/apps-writable`, holds the mounted and cloned apps */
+const APPS_WRITABLE_VOLUME = 'apps_writable'
+
 // The server image ships PHP but no Composer, so it is downloaded on demand
 const COMPOSER_VERSION = process.env.NEXTCLOUD_E2E_COMPOSER_VERSION || 'latest-stable'
 const COMPOSER_PHAR = '/tmp/composer.phar'
@@ -151,6 +154,10 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 		console.log('\nStarting Nextcloud container… 🚀')
 		console.log(`├─ Using branch '${branch}'`)
 
+		// The volume outlives the container, so it has to be pruned to not carry
+		// apps cloned for a previous run (possibly of another branch) into the new container
+		await pruneAppsWritableVolume()
+
 		const mounts: string[] = []
 		Object.entries(options.mounts ?? {})
 			.forEach(([server, local]) => mounts.push(`${local}:/var/www/html/${server}:ro`))
@@ -187,7 +194,7 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 					ReadOnly: false,
 				}, {
 					Target: '/var/www/html/apps-writable',
-					Source: 'apps_writable',
+					Source: APPS_WRITABLE_VOLUME,
 					Type: 'volume',
 					ReadOnly: false,
 				}],
@@ -211,6 +218,25 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 		console.log(err)
 		stopNextcloud()
 		throw new Error('Unable to start the container', { cause: err })
+	}
+}
+
+/**
+ * Remove the `apps-writable` volume, so that a newly created container starts with an empty apps path
+ *
+ * Docker keeps the named volume around when the container is removed, meaning apps cloned by
+ * `configureNextcloud` would otherwise be reused - including apps of a different server branch.
+ */
+async function pruneAppsWritableVolume() {
+	try {
+		await docker.getVolume(APPS_WRITABLE_VOLUME).remove()
+		console.log('├─ Pruned the "apps-writable" volume')
+	} catch (error) {
+		// The volume does not exist (yet), nothing to prune
+		if ((error as { statusCode?: number }).statusCode === 404) {
+			return
+		}
+		throw new Error(`Unable to remove the "${APPS_WRITABLE_VOLUME}" volume`, { cause: error })
 	}
 }
 
