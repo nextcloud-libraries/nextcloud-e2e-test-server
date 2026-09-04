@@ -76,6 +76,7 @@
     "test": "npm run test:node && npm run test:playwright",
     "test:node": "ts-node --esm tests/*.spec.ts",
     "test:playwright": "playwright test",
+    "ts:check": "tsc --noEmit",
     "watch": "vite --mode production build --watch"
   },
   "dependencies": {
