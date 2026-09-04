@@ -5,7 +5,7 @@
 
 import * as expect from 'node:assert'
 import { after, before, describe, test } from 'node:test'
-import { configureNextcloud, docker, getContainer, runExec, runOcc, startNextcloud, stopNextcloud, waitOnNextcloud } from '../lib/docker.ts'
+import { configureNextcloud, docker, getContainer, runExec, runOcc, startNextcloud, stopNextcloud, waitOnNextcloud } from '../lib/docker/index.ts'
 
 describe('Docker: Pre-installation of apps', async () => {
 	before(async () => {

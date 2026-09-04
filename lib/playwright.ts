@@ -5,7 +5,7 @@
 
 import type { APIRequestContext } from 'playwright'
 
-import { addUser } from './docker.ts'
+import { addUser } from './docker/index.ts'
 import { User } from './User.ts'
 
 /**

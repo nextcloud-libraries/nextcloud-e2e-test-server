@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { RunExecOptions, RunExecResult } from './docker.ts'
+import type { RunExecOptions, RunExecResult } from './docker/index.ts'
 import type { Selector } from './selectors/index.ts'
 
 import { getNc, restoreState, runCommand, runOccCommand, saveState } from './commands/index.ts'
