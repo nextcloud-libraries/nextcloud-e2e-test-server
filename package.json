@@ -93,7 +93,7 @@
     "@types/cypress": "^1.1.6",
     "@types/dockerode": "^4.0.1",
     "@types/wait-on": "^5.3.4",
-    "cypress": "^15.18.0",
+    "cypress": "^16.0.0",
     "cypress-vite": "^1.10.2",
     "eslint": "^10.6.0",
     "globals": "^17.7.0",
