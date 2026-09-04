@@ -6,6 +6,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.6.0 - 2026-09-05
+### Added
+* feat: allow to store log on teardown \([#1086](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1086)\)
+
+### Fixed
+* fix(docker): prune volume on start \([#1087](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1087)\)
+
+### Changed
+* refactor(docker): split docker.ts into modules \([#1093](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1093)\)
+* ci: add Typescript linting \([#1092](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1092)\)
+* Updated dependencies
+  * Bump `fast-xml-parser` to 5.11.1
+  * Bump `tar-stream` to 3.2.1
+
 ## v0.5.1 - 2026-08-04
 ### Fixed
 * fix(docker): always provide `apps-writable` \([#1051](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1051)\)
