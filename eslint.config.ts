@@ -21,7 +21,7 @@ export default defineConfig([
 
 	{
 		name: 'node-scripts',
-		files: ['lib/docker.ts', 'playwright/**/*.mjs'],
+		files: ['lib/docker/**/*.ts', 'playwright/**/*.mjs'],
 		languageOptions: {
 			globals: {
 				...globals.node,

@@ -10,7 +10,7 @@ export default createLibConfig({
 	index: join(__dirname, 'lib/index.ts'),
 	commands: join(__dirname, 'lib/commands/index.ts'),
 	selectors: join(__dirname, 'lib/selectors/index.ts'),
-	docker: join(__dirname, 'lib/docker.ts'),
+	docker: join(__dirname, 'lib/docker/index.ts'),
 	cypress: join(__dirname, 'lib/cypress.ts'),
 	playwright: join(__dirname, 'lib/playwright.ts'),
 }, {

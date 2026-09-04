@@ -7,7 +7,7 @@
 process.env.NODE_ENV = 'development'
 process.env.npm_package_name = 'nextcloud-e2e-test-server'
 
-import type { RunExecOptions, RunExecResult } from './lib/docker.ts'
+import type { RunExecOptions, RunExecResult } from './lib/docker/index.ts'
 
 import { defineConfig } from 'cypress'
 import vitePreprocessor from 'cypress-vite'
@@ -20,7 +20,7 @@ import {
 	startNextcloud,
 	stopNextcloud,
 	waitOnNextcloud,
-} from './lib/docker.ts'
+} from './lib/docker/index.ts'
 
 export default defineConfig({
 	projectId: 'h2z7r3',
