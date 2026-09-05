@@ -11,9 +11,13 @@
 <li><a href="../modules/index.html">index</a></li>
 <li><a href="" aria-current="page">RunExecOptions</a></li></ul>
 <h1>Interface RunExecOptions</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
+SPDX-License-Identifier: AGPL-3.0-or-later</p>
+</div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">RunExecOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#container">container</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Container</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#env">env</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#failonerror">failOnError</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#user">user</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#verbose">verbose</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#workingdir">workingDir</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/e0fcacaadb97890e35321adf042a198edeaab1ec/lib/docker.ts#L483">docker.ts:483</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/d984e7f43b512a7c838b95916dfae1eaca968832/lib/docker/exec.ts#L12">docker/exec.ts:12</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -37,42 +41,42 @@
 <div class="tsd-comment tsd-typography"><p>The container to run the command in. If not provided, the current container will be used.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/e0fcacaadb97890e35321adf042a198edeaab1ec/lib/docker.ts#L487">docker.ts:487</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/d984e7f43b512a7c838b95916dfae1eaca968832/lib/docker/exec.ts#L16">docker/exec.ts:16</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="env"><span>env</span><a href="#env" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">env</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography"><p>Environment variables to set for the command. Defaults to an empty array.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/e0fcacaadb97890e35321adf042a198edeaab1ec/lib/docker.ts#L499">docker.ts:499</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/d984e7f43b512a7c838b95916dfae1eaca968832/lib/docker/exec.ts#L28">docker/exec.ts:28</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="failonerror"><span>fail<wbr/>On<wbr/>Error</span><a href="#failonerror" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">failOnError</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p>The command will throw an error if it exits with a non-zero exit code. Defaults to true.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/e0fcacaadb97890e35321adf042a198edeaab1ec/lib/docker.ts#L495">docker.ts:495</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/d984e7f43b512a7c838b95916dfae1eaca968832/lib/docker/exec.ts#L24">docker/exec.ts:24</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="user"><span>user</span><a href="#user" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">user</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The user to run the command as. Defaults to 'www-data'.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/e0fcacaadb97890e35321adf042a198edeaab1ec/lib/docker.ts#L491">docker.ts:491</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/d984e7f43b512a7c838b95916dfae1eaca968832/lib/docker/exec.ts#L20">docker/exec.ts:20</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="verbose"><span>verbose</span><a href="#verbose" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">verbose</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p>If true, the command's output will be printed to the console. Defaults to false.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/e0fcacaadb97890e35321adf042a198edeaab1ec/lib/docker.ts#L503">docker.ts:503</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/d984e7f43b512a7c838b95916dfae1eaca968832/lib/docker/exec.ts#L32">docker/exec.ts:32</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="workingdir"><span>working<wbr/>Dir</span><a href="#workingdir" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">workingDir</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>Working directory to run the command in. Defaults to the Nextcloud root.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/e0fcacaadb97890e35321adf042a198edeaab1ec/lib/docker.ts#L507">docker.ts:507</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/d984e7f43b512a7c838b95916dfae1eaca968832/lib/docker/exec.ts#L36">docker/exec.ts:36</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
