@@ -7,10 +7,8 @@ import type { Container } from 'dockerode'
 
 import { mkdirSync, writeFileSync } from 'fs'
 import { dirname, resolve } from 'path'
-import { pipeline } from 'stream/promises'
-import tarStreamer from 'tar-stream'
 import { getContainer } from './client.ts'
-import { asNodeStream } from './internal.ts'
+import { pathExists, runExec } from './exec.ts'
 
 /** Path of the server log inside the container, it lives on the tmpfs mounted data directory */
 const NEXTCLOUD_LOG = '/var/www/html/data/nextcloud.log'
@@ -20,6 +18,9 @@ const NEXTCLOUD_LOG = '/var/www/html/data/nextcloud.log'
  *
  * The data directory is a tmpfs and the container is removed after the run,
  * so the log has to be fetched while the container still exists.
+ * It also has to be read by a command run inside the container:
+ * the Docker copy API (`docker cp` / `getArchive`) only sees the container's own
+ * filesystem and answers `404` for any path below a tmpfs mount.
  *
  * @param container Optional server container to use (defaults to current container)
  * @return The log contents, or an empty string if the server has not written a log
@@ -27,24 +28,17 @@ const NEXTCLOUD_LOG = '/var/www/html/data/nextcloud.log'
 export async function getNextcloudLog(container?: Container): Promise<string> {
 	container = container ?? getContainer()
 
-	let archive: NodeJS.ReadableStream
 	try {
-		archive = await container.getArchive({ path: NEXTCLOUD_LOG })
+		if (!await pathExists(NEXTCLOUD_LOG, container)) {
+			// No log written (yet)
+			return ''
+		}
+		const { stdout } = await runExec(['cat', NEXTCLOUD_LOG], { container })
+		return stdout
 	} catch {
-		// No log written (yet), or the container is already gone
+		// The container is already gone
 		return ''
 	}
-
-	// `getArchive` always answers with a tar stream, containing the single log entry
-	const extract = tarStreamer.extract()
-	const chunks: Buffer[] = []
-	extract.on('entry', (_header, stream, next) => {
-		stream.on('data', (chunk) => chunks.push(chunk as Buffer))
-		stream.on('end', () => next())
-	})
-	await pipeline(archive, asNodeStream(extract))
-
-	return Buffer.concat(chunks).toString('utf8')
 }
 
 /**
