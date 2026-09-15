@@ -6,6 +6,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.6.1 - 2026-09-15
+### Fixed
+* fix(docker): properly copy nextcloud log \([#1101](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1101)\)
+
+### Changed
+* Updated dependencies
+
 ## v0.6.0 - 2026-09-05
 ### Added
 * feat: allow to store log on teardown \([#1086](https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/pull/1086)\)
