@@ -18,7 +18,10 @@
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Read the server log (<code>data/nextcloud.log</code>) from the container.</p>
 <p>The data directory is a tmpfs and the container is removed after the run,
-so the log has to be fetched while the container still exists.</p>
+so the log has to be fetched while the container still exists.
+It also has to be read by a command run inside the container:
+the Docker copy API (<code>docker cp</code> / <code>getArchive</code>) only sees the container's own
+filesystem and answers <code>404</code> for any path below a tmpfs mount.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -29,7 +32,7 @@ so the log has to be fetched while the container still exists.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><p>The log contents, or an empty string if the server has not written a log</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/d984e7f43b512a7c838b95916dfae1eaca968832/lib/docker/logs.ts#L27">docker/logs.ts:27</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/blob/268acb1c04cf73cd56bc646d9aa90aa499b4fcba/lib/docker/logs.ts#L28">docker/logs.ts:28</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
