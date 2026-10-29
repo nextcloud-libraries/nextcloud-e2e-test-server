@@ -44,7 +44,7 @@ jobs:
         run: docker pull ghcr.io/nextcloud/continuous-integration-shallow-server
 
       - name: Run E2E cypress tests
-        uses: cypress-io/github-action@09090944bd8aaa2a517cefb6e38bf1aae336b42b # v7.4.3
+        uses: cypress-io/github-action@4ce68f262a3888d22cf3175d62010a145ba737ee # v7.4.8
         with:
           # cypress io
           record: true
