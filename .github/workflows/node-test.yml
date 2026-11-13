@@ -55,3 +55,13 @@ jobs:
 
       - name: Test
         run: npm run test --if-present
+
+      - name: Test and process coverage
+        run: npm run test:coverage --if-present
+
+      - name: Collect coverage
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          files: ./coverage/lcov.info
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
