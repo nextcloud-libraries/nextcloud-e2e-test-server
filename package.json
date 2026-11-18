@@ -74,7 +74,7 @@
     "start:nextcloud": "node playwright/start-nextcloud-server.mjs",
     "pretest": "playwright install chromium --only-shell",
     "test": "npm run test:node && npm run test:playwright",
-    "test:node": "ts-node --esm tests/*.spec.ts",
+    "test:node": "node --experimental-strip-types --test --test-concurrency=1 tests/*.spec.ts",
     "test:playwright": "playwright test",
     "ts:check": "tsc --noEmit",
     "watch": "vite --mode production build --watch"
