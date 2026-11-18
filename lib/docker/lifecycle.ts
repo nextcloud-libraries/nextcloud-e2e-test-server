@@ -18,6 +18,9 @@ import { APPS_WRITABLE_VOLUME, pruneAppsWritableVolume } from './volumes.ts'
 
 const SERVER_IMAGE = 'ghcr.io/nextcloud/continuous-integration-shallow-server'
 
+// The branch of a container this process created, checked once Nextcloud is ready
+let _branchToVerify: string | null = null
+
 interface StartOptions {
 	/**
 	 * Force recreate the container even if an old one is found
@@ -172,6 +175,7 @@ export async function startNextcloud(branch = 'master', mountApp: boolean | stri
 		console.log(`├─ Nextcloud container's IP is ${ip} 🌏`)
 
 		setServerBranch(branch)
+		_branchToVerify = branch
 
 		return ip
 	} catch (err) {
@@ -283,5 +287,27 @@ export async function getContainerIP(container: Container = getContainer()): Pro
 export async function waitOnNextcloud(ip: string) {
 	console.log('├─ Waiting for Nextcloud to be ready… ⏳')
 	await waitOn({ resources: [`http://${ip}/index.php`] })
+
+	if (_branchToVerify !== null) {
+		const expected = _branchToVerify
+		_branchToVerify = null
+		await assertCheckedOutBranch(expected)
+	}
 	console.log('└─ Done')
+}
+
+/**
+ * The image checks out the requested branch when the container starts. If that fails, for example
+ * because fetching it failed, the container keeps the branch the image was built with and still
+ * installs Nextcloud, so tests would silently run against the wrong version.
+ *
+ * @param expected - The branch passed to `startNextcloud`
+ * @throws {Error} If the container runs another branch
+ */
+async function assertCheckedOutBranch(expected: string): Promise<void> {
+	const { stdout } = await runExec(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], { workingDir: '/var/www/html' })
+	const actual = stdout.trim()
+	if (actual !== expected) {
+		throw new Error(`The container runs Nextcloud from '${actual}' instead of '${expected}'. Checking out the branch probably failed; see the container log.`)
+	}
 }

@@ -15,6 +15,8 @@ In particular cypress specific utils such as selectors will be dropped unless th
 
 ## Starting Nextcloud Docker container
 
+`startNextcloud(branch)` checks out the server branch inside the container, and `waitOnNextcloud()` fails if that did not work, so tests never run against another version by mistake.
+
 ### Playwright
 
 1. Copy `playwright.config.mjs` and `playwright` folder from this repository!
