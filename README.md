@@ -15,6 +15,10 @@ In particular cypress specific utils such as selectors will be dropped unless th
 
 ## Starting Nextcloud Docker container
 
+The container runs on the local Docker daemon. Set `DOCKER_SOCKET` to the path of its socket, or `DOCKER_HOST` to its address. Otherwise Docker Desktop's `~/.docker/run/docker.sock` is used if it exists, then `/var/run/docker.sock`.
+
+`startNextcloud(branch)` checks out the server branch inside the container, and `waitOnNextcloud()` fails if that did not work, so tests never run against another version by mistake.
+
 ### Playwright
 
 1. Copy `playwright.config.mjs` and `playwright` folder from this repository!

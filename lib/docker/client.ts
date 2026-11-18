@@ -8,7 +8,18 @@ import type { Container } from 'dockerode'
 import Docker from 'dockerode'
 import { basename } from 'path'
 
-export const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET ?? '/var/run/docker.sock' })
+/**
+ * Options for the Docker client. Without `DOCKER_SOCKET`, docker-modem finds the daemon itself:
+ * through `DOCKER_HOST` when it is set, otherwise at Docker Desktop's `~/.docker/run/docker.sock`
+ * or the system-wide `/var/run/docker.sock`.
+ *
+ * @param env The environment to read, `process.env` by default
+ */
+export function getDockerOptions(env: NodeJS.ProcessEnv = process.env): Docker.DockerOptions | undefined {
+	return env.DOCKER_SOCKET ? { socketPath: env.DOCKER_SOCKET } : undefined
+}
+
+export const docker = new Docker(getDockerOptions())
 
 // Store the container name, different names are used to prevent conflicts when testing multiple apps locally
 let _containerName: string | null = null
